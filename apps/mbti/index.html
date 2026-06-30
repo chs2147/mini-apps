@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBTI 테스트</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --text-sub: rgba(240,240,245,0.55);
+  }
+
+  html, body {
+    min-height: 100vh;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    color: var(--text);
+    background-color: #0d0d1a;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 20%, rgba(123,47,255,0.35) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 80% 10%, rgba(0,198,255,0.25) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 80% at 75% 80%, rgba(0,255,198,0.2) 0%, transparent 60%);
+    animation: meshShift 12s ease-in-out infinite alternate;
+  }
+
+  @keyframes meshShift {
+    0%   { background-position: 0% 0%, 100% 0%, 100% 100%; }
+    100% { background-position: 10% 20%, 90% 10%, 85% 90%; }
+  }
+
+  .back {
+    position: fixed;
+    top: 24px; left: 24px;
+    z-index: 10;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    text-decoration: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 8px 14px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    transition: color 0.2s, background 0.2s;
+  }
+  .back:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+  .page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px 48px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .header { text-align: center; }
+  .emoji { font-size: 3rem; margin-bottom: 12px; }
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #fff 0%, #a78bfa 50%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .sub { margin-top: 8px; color: var(--text-sub); font-size: 0.9rem; }
+
+  /* Progress bar */
+  .progress-wrap {
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    height: 4px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #7b2fff, #00c6ff);
+    border-radius: 4px;
+    transition: width 0.4s cubic-bezier(0.22,1,0.36,1);
+  }
+  .progress-label {
+    font-size: 0.78rem;
+    color: var(--text-sub);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* Question card */
+  .question-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 32px;
+    backdrop-filter: blur(24px);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .question-text {
+    font-size: 1.15rem;
+    font-weight: 500;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .option {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 16px 20px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text);
+    transition: all 0.2s ease;
+    text-align: left;
+  }
+  .option:hover {
+    background: rgba(123,47,255,0.2);
+    border-color: rgba(123,47,255,0.5);
+    transform: translateX(4px);
+  }
+
+  /* Result */
+  .result-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 40px 32px;
+    backdrop-filter: blur(24px);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    display: none;
+  }
+
+  .mbti-type {
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #a78bfa, #38bdf8, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .mbti-nickname {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .mbti-desc {
+    font-size: 0.95rem;
+    color: var(--text-sub);
+    line-height: 1.7;
+  }
+
+  .traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .trait {
+    background: rgba(123,47,255,0.15);
+    border: 1px solid rgba(123,47,255,0.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    color: #c4b5fd;
+  }
+
+  .restart-btn {
+    background: linear-gradient(135deg, #7b2fff, #00c6ff);
+    border: none;
+    border-radius: 14px;
+    padding: 14px 28px;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    letter-spacing: -0.01em;
+  }
+  .restart-btn:hover { opacity: 0.85; transform: scale(1.02); }
+
+  .hidden { display: none !important; }
+  .fade-in { animation: fadeIn 0.4s ease forwards; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<a class="back" href="../../index.html">← 홈으로</a>
+
+<div class="page">
+  <div class="container">
+    <div class="header" id="intro">
+      <div class="emoji">🧠</div>
+      <h1>MBTI 테스트</h1>
+      <p class="sub">12개의 질문으로 알아보는 나의 성격 유형</p>
+    </div>
+
+    <div id="progress-section" class="hidden">
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+      </div>
+      <p class="progress-label" id="progress-label">0 / 12</p>
+    </div>
+
+    <div class="question-card" id="question-card">
+      <div class="question-text" id="question-text">시작 버튼을 눌러 테스트를 시작하세요.</div>
+      <div class="options" id="options">
+        <button class="option" onclick="startTest()">테스트 시작하기 →</button>
+      </div>
+    </div>
+
+    <div class="result-card" id="result-card">
+      <div class="mbti-type" id="result-type"></div>
+      <div class="mbti-nickname" id="result-nickname"></div>
+      <div class="mbti-desc" id="result-desc"></div>
+      <div class="traits" id="result-traits"></div>
+      <button class="restart-btn" onclick="restartTest()">다시 테스트하기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { q: "파티나 모임이 끝난 후 나는...", a: ["에너지가 충전된다 — 사람들과 함께해서 활기차다", "에너지가 소진된다 — 혼자만의 시간이 필요하다"], axis: "EI", dir: ["E","I"] },
+  { q: "처음 만난 사람과의 대화에서...", a: ["내가 먼저 말을 걸고 분위기를 이끈다", "상대가 먼저 다가오길 기다리는 편이다"], axis: "EI", dir: ["E","I"] },
+  { q: "문제를 해결할 때 나는...", a: ["구체적인 사실과 데이터에 집중한다", "큰 그림과 가능성에 집중한다"], axis: "SN", dir: ["S","N"] },
+  { q: "미래에 대해 생각할 때...", a: ["현실적이고 검증된 방법을 선호한다", "아직 없는 것들을 상상하는 걸 즐긴다"], axis: "SN", dir: ["S","N"] },
+  { q: "친구가 고민을 털어놓을 때 나는...", a: ["해결책을 찾아 조언해주고 싶다", "먼저 공감하고 감정을 나눈다"], axis: "TF", dir: ["T","F"] },
+  { q: "갈등 상황에서 나는...", a: ["논리적으로 옳고 그름을 따진다", "모두의 감정이 상하지 않도록 조율한다"], axis: "TF", dir: ["T","F"] },
+  { q: "여행 계획을 세울 때...", a: ["일정, 숙소, 교통을 미리 꼼꼼히 준비한다", "대략적인 방향만 정하고 현장에서 즉흥적으로"], axis: "JP", dir: ["J","P"] },
+  { q: "마감 기한이 있을 때 나는...", a: ["미리미리 끝내야 마음이 편하다", "막판의 긴장감이 오히려 집중력을 높인다"], axis: "JP", dir: ["J","P"] },
+  { q: "주말 저녁 계획이 갑자기 취소됐다. 나는...", a: ["아, 미리 다른 약속을 잡을 걸 하고 아쉽다", "오히려 혼자 쉴 수 있어 다행이다"], axis: "EI", dir: ["E","I"] },
+  { q: "새로운 프로젝트를 시작할 때...", a: ["단계별 실행 계획부터 세운다", "일단 해보면서 방향을 잡는다"], axis: "SN", dir: ["N","P"] },
+  { q: "중요한 결정을 내릴 때 나는...", a: ["이성적 판단을 더 신뢰한다", "직감과 감정을 더 신뢰한다"], axis: "TF", dir: ["T","F"] },
+  { q: "내가 더 스트레스를 받는 상황은...", a: ["계획이 갑자기 바뀌었을 때", "선택지가 너무 일찍 닫혀버렸을 때"], axis: "JP", dir: ["J","P"] },
+];
+
+const mbtiData = {
+  INTJ: { nickname: "전략가", desc: "독립적이고 전략적인 사상가. 목표 지향적이며, 자신만의 비전을 실현하는 데 탁월합니다.", traits: ["논리적","독립적","전략적","비전 있는"] },
+  INTP: { nickname: "논리술사", desc: "분석적이고 호기심 많은 사색가. 복잡한 아이디어를 탐구하고 이론을 발전시키는 것을 즐깁니다.", traits: ["분석적","창의적","호기심","객관적"] },
+  ENTJ: { nickname: "통솔자", desc: "카리스마 있는 리더. 비효율을 참지 못하며 조직을 이끄는 천부적 재능을 지닙니다.", traits: ["리더십","결단력","전략적","효율적"] },
+  ENTP: { nickname: "변론가", desc: "재치 있고 아이디어가 넘치는 혁신가. 논쟁을 즐기며 기존 방식에 도전하기를 좋아합니다.", traits: ["창의적","논쟁적","유연한","도전적"] },
+  INFJ: { nickname: "옹호자", desc: "이상주의적이고 통찰력 있는 조력자. 세상을 더 나은 곳으로 만들고 싶은 사람들입니다.", traits: ["통찰력","이타적","원칙적","공감 능력"] },
+  INFP: { nickname: "중재자", desc: "감수성 풍부한 이상주의자. 자신만의 가치관을 중시하며 깊은 내면의 세계를 가집니다.", traits: ["공감","이상주의","창의적","진정성"] },
+  ENFJ: { nickname: "선도자", desc: "카리스마 넘치는 영감의 원천. 타인의 잠재력을 이끌어내는 데 탁월한 능력을 발휘합니다.", traits: ["카리스마","공감","리더십","헌신적"] },
+  ENFP: { nickname: "활동가", desc: "열정적이고 창의적인 자유로운 영혼. 어디서나 새로운 가능성을 발견하고 사람들에게 영감을 줍니다.", traits: ["열정적","창의적","사교적","자유로운"] },
+  ISTJ: { nickname: "현실주의자", desc: "신뢰할 수 있는 책임감 있는 관리자. 원칙과 체계를 통해 주변을 안정시킵니다.", traits: ["책임감","성실","논리적","전통적"] },
+  ISFJ: { nickname: "수호자", desc: "따뜻하고 헌신적인 보호자. 사랑하는 사람들을 위해 묵묵히 최선을 다합니다.", traits: ["헌신적","세심한","믿음직한","배려심"] },
+  ESTJ: { nickname: "경영자", desc: "실용적이고 사실에 기반한 관리자. 규칙과 질서를 중시하며 조직을 효율적으로 운영합니다.", traits: ["체계적","책임감","실용적","리더십"] },
+  ESFJ: { nickname: "집정관", desc: "배려심 있고 사교적인 조화로운 사람. 주변 사람들의 필요를 먼저 생각합니다.", traits: ["사교적","배려","협력적","충성스러운"] },
+  ISTP: { nickname: "장인", desc: "대담하고 실용적인 실험가. 손으로 직접 탐구하며 문제를 즉흥적으로 해결합니다.", traits: ["실용적","분석적","자율적","융통성"] },
+  ISFP: { nickname: "모험가", desc: "유연하고 매력적인 예술가. 자신만의 독특한 방식으로 삶을 살아가며 순간을 즐깁니다.", traits: ["예술적","개방적","온화한","자유로운"] },
+  ESTP: { nickname: "사업가", desc: "스마트하고 활기찬 인식의 달인. 빠른 판단력으로 최선의 결과를 이끌어냅니다.", traits: ["대담한","실용적","직접적","관찰력"] },
+  ESFP: { nickname: "연예인", desc: "자발적이고 활기찬 엔터테이너. 삶을 즐기고 주변 사람들도 즐겁게 만드는 사람입니다.", traits: ["활기찬","즉흥적","사교적","낙천적"] },
+};
+
+let current = 0;
+let scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+
+function startTest() {
+  current = 0;
+  scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+  document.getElementById('progress-section').classList.remove('hidden');
+  document.getElementById('result-card').style.display = 'none';
+  document.getElementById('question-card').style.display = 'flex';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[current];
+  const total = questions.length;
+  document.getElementById('progress-bar').style.width = `${(current/total)*100}%`;
+  document.getElementById('progress-label').textContent = `${current} / ${total}`;
+  document.getElementById('question-text').textContent = q.q;
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.a.forEach((text, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = text;
+    btn.onclick = () => answer(i, q);
+    opts.appendChild(btn);
+  });
+
+  document.getElementById('question-card').classList.remove('fade-in');
+  void document.getElementById('question-card').offsetWidth;
+  document.getElementById('question-card').classList.add('fade-in');
+}
+
+function answer(idx, q) {
+  scores[q.dir[idx]]++;
+  current++;
+  if (current >= questions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult() {
+  const type =
+    (scores.E >= scores.I ? 'E' : 'I') +
+    (scores.S >= scores.N ? 'S' : 'N') +
+    (scores.T >= scores.F ? 'T' : 'F') +
+    (scores.J >= scores.P ? 'J' : 'P');
+
+  const data = mbtiData[type] || { nickname: '독특한 유형', desc: '당신은 정말 특별한 사람입니다!', traits: [] };
+
+  document.getElementById('progress-bar').style.width = '100%';
+  document.getElementById('progress-label').textContent = `${questions.length} / ${questions.length}`;
+
+  document.getElementById('result-type').textContent = type;
+  document.getElementById('result-nickname').textContent = `"${data.nickname}"`;
+  document.getElementById('result-desc').textContent = data.desc;
+
+  const traitsEl = document.getElementById('result-traits');
+  traitsEl.innerHTML = data.traits.map(t => `<span class="trait">${t}</span>`).join('');
+
+  document.getElementById('question-card').style.display = 'none';
+  const rc = document.getElementById('result-card');
+  rc.style.display = 'flex';
+  rc.classList.remove('fade-in');
+  void rc.offsetWidth;
+  rc.classList.add('fade-in');
+}
+
+function restartTest() {
+  document.getElementById('result-card').style.display = 'none';
+  document.getElementById('question-card').style.display = 'flex';
+  document.getElementById('progress-section').classList.add('hidden');
+
+  document.getElementById('question-text').textContent = '시작 버튼을 눌러 테스트를 시작하세요.';
+  const opts = document.getElementById('options');
+  opts.innerHTML = '<button class="option" onclick="startTest()">테스트 시작하기 →</button>';
+}
+</script>
+</body>
+</html>

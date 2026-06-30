@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>포모도로 타이머</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --text-sub: rgba(240,240,245,0.55);
+    --focus-color: #f97316;
+    --break-color: #34d399;
+  }
+
+  html, body {
+    min-height: 100vh;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    color: var(--text);
+    background-color: #0d0d1a;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 30% 30%, rgba(249,115,22,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 70% 70%, rgba(123,47,255,0.2) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 60% at 80% 15%, rgba(0,198,255,0.15) 0%, transparent 55%);
+    animation: meshShift 12s ease-in-out infinite alternate;
+    transition: background-image 1.5s ease;
+  }
+
+  body.break-mode {
+    background-image:
+      radial-gradient(ellipse 80% 60% at 30% 30%, rgba(52,211,153,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 70% 70%, rgba(0,198,255,0.2) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 60% at 80% 15%, rgba(123,47,255,0.15) 0%, transparent 55%);
+  }
+
+  @keyframes meshShift {
+    0%   { background-position: 0% 0%, 100% 100%, 100% 0%; }
+    100% { background-position: 10% 15%, 85% 85%, 90% 15%; }
+  }
+
+  .back {
+    position: fixed;
+    top: 24px; left: 24px;
+    z-index: 10;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    text-decoration: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 8px 14px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    transition: color 0.2s, background 0.2s;
+  }
+  .back:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+  .page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding: 80px 24px 48px;
+  }
+
+  /* Mode tabs */
+  .mode-tabs {
+    display: flex;
+    gap: 8px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 4px;
+    backdrop-filter: blur(12px);
+  }
+
+  .tab {
+    padding: 8px 20px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-sub);
+    transition: all 0.2s ease;
+    letter-spacing: -0.01em;
+  }
+  .tab.active {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+  }
+
+  /* Ring timer */
+  .timer-wrap {
+    position: relative;
+    width: 280px;
+    height: 280px;
+  }
+
+  .ring-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .ring-track {
+    fill: none;
+    stroke: rgba(255,255,255,0.08);
+    stroke-width: 6;
+  }
+
+  .ring-progress {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear, stroke 0.8s ease;
+  }
+
+  .timer-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .timer-emoji { font-size: 2rem; }
+
+  .timer-display {
+    font-size: 3.2rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .timer-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-sub);
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .btn-main {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--focus-color), #fb923c);
+    box-shadow: 0 8px 32px rgba(249,115,22,0.4);
+    transition: transform 0.15s ease, box-shadow 0.2s;
+  }
+  .btn-main:hover { transform: scale(1.06); }
+  .btn-main:active { transform: scale(0.96); }
+  .btn-main.break { background: linear-gradient(135deg, var(--break-color), #6ee7b7); box-shadow: 0 8px 32px rgba(52,211,153,0.4); }
+
+  .btn-icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    color: var(--text-sub);
+    transition: all 0.2s;
+  }
+  .btn-icon:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+
+  /* Stats */
+  .stats {
+    display: flex;
+    gap: 16px;
+  }
+
+  .stat-box {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 16px 24px;
+    text-align: center;
+    backdrop-filter: blur(16px);
+    min-width: 90px;
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-sub);
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  /* Session dots */
+  .session-dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+  .dot.done {
+    background: var(--focus-color);
+    box-shadow: 0 0 8px rgba(249,115,22,0.6);
+  }
+  .dot.done.break { background: var(--break-color); box-shadow: 0 0 8px rgba(52,211,153,0.6); }
+
+  /* Status message */
+  .status-msg {
+    font-size: 0.9rem;
+    color: var(--text-sub);
+    min-height: 1.4em;
+    text-align: center;
+    transition: opacity 0.4s;
+  }
+</style>
+</head>
+<body>
+<a class="back" href="../../index.html">← 홈으로</a>
+
+<div class="page">
+  <div class="mode-tabs">
+    <button class="tab active" id="tab-focus" onclick="switchMode('focus')">🍅 집중</button>
+    <button class="tab" id="tab-break" onclick="switchMode('break')">☕ 휴식</button>
+    <button class="tab" id="tab-long" onclick="switchMode('long')">🌿 긴 휴식</button>
+  </div>
+
+  <div class="timer-wrap">
+    <svg class="ring-svg" viewBox="0 0 280 280">
+      <circle class="ring-track" cx="140" cy="140" r="126"/>
+      <circle class="ring-progress" id="ring" cx="140" cy="140" r="126"/>
+    </svg>
+    <div class="timer-center">
+      <div class="timer-emoji" id="timer-emoji">🍅</div>
+      <div class="timer-display" id="timer-display">25:00</div>
+      <div class="timer-label" id="timer-label">집중 시간</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-icon" onclick="resetTimer()" title="리셋">↺</button>
+    <button class="btn-main" id="btn-main" onclick="toggleTimer()">▶</button>
+    <button class="btn-icon" onclick="skipSession()" title="건너뛰기">⏭</button>
+  </div>
+
+  <div class="session-dots" id="session-dots">
+    <div class="dot" id="dot-0"></div>
+    <div class="dot" id="dot-1"></div>
+    <div class="dot" id="dot-2"></div>
+    <div class="dot" id="dot-3"></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-box">
+      <div class="stat-label">완료 세션</div>
+      <div class="stat-value" id="stat-sessions">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">집중 시간</div>
+      <div class="stat-value" id="stat-time">0m</div>
+    </div>
+  </div>
+
+  <div class="status-msg" id="status-msg">시작 버튼을 눌러 집중을 시작하세요</div>
+</div>
+
+<script>
+const MODES = {
+  focus: { duration: 25 * 60, label: '집중 시간', emoji: '🍅', color: '#f97316' },
+  break: { duration:  5 * 60, label: '휴식 시간', emoji: '☕', color: '#34d399' },
+  long:  { duration: 15 * 60, label: '긴 휴식',   emoji: '🌿', color: '#6ee7b7' },
+};
+
+const CIRCUMFERENCE = 2 * Math.PI * 126;
+const ring = document.getElementById('ring');
+ring.style.strokeDasharray = CIRCUMFERENCE;
+
+let mode = 'focus';
+let timeLeft = MODES.focus.duration;
+let totalDuration = MODES.focus.duration;
+let running = false;
+let timer = null;
+let completedSessions = 0;
+let focusMinutes = 0;
+let sessionInCycle = 0; // 0–3
+
+function updateRing(left, total) {
+  const pct = left / total;
+  ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+  ring.style.stroke = MODES[mode].color;
+}
+
+function updateDisplay() {
+  const m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+  const s = String(timeLeft % 60).padStart(2, '0');
+  document.getElementById('timer-display').textContent = `${m}:${s}`;
+  updateRing(timeLeft, totalDuration);
+}
+
+function switchMode(m) {
+  if (running) stopTimer();
+  mode = m;
+  timeLeft = MODES[m].duration;
+  totalDuration = MODES[m].duration;
+
+  document.getElementById('timer-emoji').textContent = MODES[m].emoji;
+  document.getElementById('timer-label').textContent = MODES[m].label;
+  document.getElementById('btn-main').textContent = '▶';
+  document.getElementById('btn-main').className = 'btn-main' + (m !== 'focus' ? ' break' : '');
+  document.body.className = m !== 'focus' ? 'break-mode' : '';
+
+  ['focus','break','long'].forEach(t => {
+    document.getElementById(`tab-${t}`).className = 'tab' + (t === m ? ' active' : '');
+  });
+
+  updateDisplay();
+  setStatus('시작 버튼을 눌러 ' + MODES[m].label + '을 시작하세요');
+}
+
+function toggleTimer() {
+  running ? stopTimer() : startTimer();
+}
+
+function startTimer() {
+  running = true;
+  document.getElementById('btn-main').textContent = '⏸';
+  setStatus(mode === 'focus' ? '집중하세요 💪' : '잠깐 쉬어가요 😌');
+
+  timer = setInterval(() => {
+    timeLeft--;
+    updateDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      running = false;
+      onComplete();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  running = false;
+  clearInterval(timer);
+  document.getElementById('btn-main').textContent = '▶';
+  setStatus('일시정지됨');
+}
+
+function resetTimer() {
+  stopTimer();
+  timeLeft = totalDuration = MODES[mode].duration;
+  updateDisplay();
+  document.getElementById('btn-main').textContent = '▶';
+  setStatus('리셋되었습니다');
+}
+
+function skipSession() {
+  stopTimer();
+  onComplete(true);
+}
+
+function onComplete(skipped = false) {
+  if (mode === 'focus' && !skipped) {
+    completedSessions++;
+    focusMinutes += 25;
+    document.getElementById('stat-sessions').textContent = completedSessions;
+    document.getElementById('stat-time').textContent = focusMinutes + 'm';
+
+    // mark dot
+    const dot = document.getElementById(`dot-${sessionInCycle}`);
+    if (dot) dot.className = 'dot done';
+    sessionInCycle = (sessionInCycle + 1) % 4;
+
+    // reset dots every 4
+    if (sessionInCycle === 0) {
+      for (let i = 0; i < 4; i++) document.getElementById(`dot-${i}`).className = 'dot';
+    }
+
+    beep([523, 659, 784], 0.15);
+    setStatus('집중 완료! 🎉 잠깐 쉬어가세요');
+    setTimeout(() => switchMode(completedSessions % 4 === 0 ? 'long' : 'break'), 1200);
+  } else {
+    beep([784, 659, 523], 0.1);
+    setStatus('휴식 끝! 다시 집중할 시간이에요');
+    setTimeout(() => switchMode('focus'), 1200);
+  }
+}
+
+function beep(freqs, vol = 0.1) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(vol, ctx.currentTime + i * 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.3);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.3);
+    });
+  } catch(e) {}
+}
+
+function setStatus(msg) {
+  const el = document.getElementById('status-msg');
+  el.style.opacity = 0;
+  setTimeout(() => { el.textContent = msg; el.style.opacity = 1; }, 200);
+}
+
+// Notifications permission
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+// Init
+updateDisplay();
+</script>
+</body>
+</html>

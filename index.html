@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Apps</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --c1: #0d0d1a;
+    --c2: #1a0a2e;
+    --accent1: #7b2fff;
+    --accent2: #00c6ff;
+    --accent3: #00ffc6;
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --text-sub: rgba(240,240,245,0.55);
+  }
+
+  html, body {
+    min-height: 100vh;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ── Mesh gradient background ── */
+  body {
+    background-color: var(--c1);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 20%, rgba(123,47,255,0.35) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 80% 10%, rgba(0,198,255,0.25) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 80% at 75% 80%, rgba(0,255,198,0.2) 0%, transparent 60%),
+      radial-gradient(ellipse 90% 60% at 10% 85%, rgba(100,60,220,0.2) 0%, transparent 55%);
+    animation: meshShift 12s ease-in-out infinite alternate;
+  }
+
+  @keyframes meshShift {
+    0%   { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%; }
+    25%  { background-position: 10% 15%, 90% 5%, 85% 90%, 5% 80%; }
+    50%  { background-position: 5% 30%, 95% 20%, 80% 85%, 15% 70%; }
+    75%  { background-position: 15% 10%, 85% 15%, 90% 80%, 10% 90%; }
+    100% { background-position: 0% 20%, 100% 10%, 100% 90%, 0% 80%; }
+  }
+
+  /* ── Noise overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Layout ── */
+  .page {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    gap: 64px;
+  }
+
+  /* ── Header ── */
+  header {
+    text-align: center;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-sub);
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: clamp(2.8rem, 7vw, 5rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    background: linear-gradient(135deg, #ffffff 0%, #a78bfa 40%, #38bdf8 70%, #34d399 100%);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradShift 6s ease-in-out infinite alternate;
+  }
+
+  @keyframes gradShift {
+    0%   { background-position: 0% 0%; }
+    100% { background-position: 100% 100%; }
+  }
+
+  .subtitle {
+    margin-top: 16px;
+    font-size: 1.05rem;
+    color: var(--text-sub);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Cards grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    width: 100%;
+    max-width: 900px;
+  }
+
+  /* ── App card ── */
+  .card {
+    position: relative;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 36px 28px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
+
+    /* stagger fade-in */
+    opacity: 0;
+    animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+  }
+  .card:nth-child(1) { animation-delay: 0.1s; }
+  .card:nth-child(2) { animation-delay: 0.22s; }
+  .card:nth-child(3) { animation-delay: 0.34s; }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    opacity: 0;
+    background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.08) 0%, transparent 65%);
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  .card:hover {
+    border-color: rgba(255,255,255,0.22);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 20px 60px rgba(0,0,0,0.45),
+      0 0 40px rgba(123,47,255,0.15);
+  }
+  .card:hover::after { opacity: 1; }
+
+  .card-icon {
+    font-size: 2.6rem;
+    line-height: 1;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  .card-desc {
+    font-size: 0.875rem;
+    color: var(--text-sub);
+    line-height: 1.55;
+    flex: 1;
+  }
+
+  .card-arrow {
+    align-self: flex-end;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+    font-size: 1rem;
+  }
+  .card:hover .card-arrow {
+    background: rgba(255,255,255,0.16);
+    transform: translateX(3px);
+  }
+
+  /* accent glows per card */
+  .card[data-color="purple"] { --glow: rgba(123,47,255,0.3); }
+  .card[data-color="blue"]   { --glow: rgba(0,198,255,0.3); }
+  .card[data-color="mint"]   { --glow: rgba(0,255,198,0.3); }
+
+  .card:hover {
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 24px 64px rgba(0,0,0,0.5),
+      0 0 50px var(--glow, rgba(123,47,255,0.2));
+  }
+
+  /* ── Footer ── */
+  footer {
+    font-size: 0.78rem;
+    color: var(--text-sub);
+    opacity: 0.5;
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <p class="eyebrow">Mini Apps Collection</p>
+    <h1>작고 재미있는<br>앱들의 세계</h1>
+    <p class="subtitle">취향대로 골라 즐기는 미니 앱 모음</p>
+  </header>
+
+  <section class="grid">
+    <a class="card" href="apps/mbti/index.html" data-color="purple">
+      <div class="card-icon">🧠</div>
+      <div class="card-title">MBTI 테스트</div>
+      <div class="card-desc">나는 어떤 유형일까? 16가지 성격 유형 중 당신의 유형을 찾아보세요.</div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a class="card" href="apps/tetris/index.html" data-color="blue">
+      <div class="card-icon">🎮</div>
+      <div class="card-title">기괴한 테트리스</div>
+      <div class="card-desc">뭔가 잘못된 테트리스. 블록이 제멋대로 굴고 중력도 믿을 수 없어요.</div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a class="card" href="apps/pomodoro/index.html" data-color="mint">
+      <div class="card-icon">🍅</div>
+      <div class="card-title">포모도로 타이머</div>
+      <div class="card-desc">집중과 휴식의 리듬. 25분 집중, 5분 휴식으로 생산성을 높이세요.</div>
+      <div class="card-arrow">→</div>
+    </a>
+  </section>
+
+  <footer>Made with pure HTML · CSS · JS</footer>
+</div>
+
+<script>
+  // 3D tilt on card hover
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width;
+      const y = (e.clientY - r.top) / r.height;
+      const tiltX = (y - 0.5) * -14;
+      const tiltY = (x - 0.5) * 14;
+      card.style.transform = `perspective(700px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.02)`;
+      card.style.setProperty('--mx', `${x * 100}%`);
+      card.style.setProperty('--my', `${y * 100}%`);
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+      card.style.transition = 'transform 0.5s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s ease, border-color 0.3s ease';
+      setTimeout(() => card.style.transition = '', 500);
+    });
+  });
+</script>
+</body>
+</html>

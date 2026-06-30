@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기괴한 테트리스</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --text-sub: rgba(240,240,245,0.55);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    color: var(--text);
+    background-color: #0d0d1a;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 20%, rgba(0,198,255,0.3) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 80% 80%, rgba(123,47,255,0.25) 0%, transparent 55%);
+    overflow: hidden;
+  }
+
+  .back {
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 20;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem;
+    color: var(--text-sub);
+    text-decoration: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 7px 13px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    transition: color 0.2s, background 0.2s;
+  }
+  .back:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+  /* ── Page shell ── */
+  .page {
+    width: 100%; height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 56px 12px 12px;
+  }
+
+  h1 {
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #fff 0%, #38bdf8 60%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    flex-shrink: 0;
+  }
+
+  /* ── Game area: board + side panel side-by-side ── */
+  .game-wrap {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    flex-shrink: 0;
+  }
+
+  /* ── Canvas ── */
+  #board {
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(8px);
+    display: block;
+    flex-shrink: 0;
+  }
+
+  /* ── Side panel ── */
+  .side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .panel-box {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    backdrop-filter: blur(16px);
+    text-align: center;
+  }
+
+  .panel-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-sub);
+    margin-bottom: 4px;
+  }
+
+  .panel-value {
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .weird-msg {
+    font-size: 0.72rem;
+    color: #f472b6;
+    min-height: 1.1em;
+    text-align: center;
+    font-style: italic;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+  #next {
+    border-radius: 6px;
+    background: rgba(0,0,0,0.3);
+    display: block;
+    margin: 0 auto;
+  }
+
+  .btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
+    padding: 9px 10px;
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+  .btn:hover { background: rgba(255,255,255,0.15); }
+
+  .controls-hint {
+    font-size: 0.65rem;
+    color: var(--text-sub);
+    text-align: center;
+    line-height: 1.9;
+  }
+
+  /* ── Mobile bottom controls (touch) ── */
+  .touch-controls {
+    display: none;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  @media (pointer: coarse) {
+    .touch-controls { display: flex; }
+    .controls-hint { display: none; }
+  }
+
+  .tc-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    color: var(--text);
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(12px);
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .tc-btn:active { background: rgba(255,255,255,0.18); }
+
+  /* ── Overlay ── */
+  .canvas-wrap { position: relative; flex-shrink: 0; }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.78);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    backdrop-filter: blur(6px);
+    z-index: 5;
+  }
+  .overlay-title { font-size: clamp(1rem, 4vw, 1.4rem); font-weight: 700; }
+  .overlay-sub { color: var(--text-sub); font-size: 0.82rem; }
+</style>
+</head>
+<body>
+<a class="back" href="../../index.html">← 홈으로</a>
+
+<div class="page">
+  <h1>🎮 기괴한 테트리스</h1>
+
+  <div class="game-wrap" id="game-wrap">
+    <div class="canvas-wrap" id="canvas-wrap">
+      <canvas id="board"></canvas>
+      <div class="overlay" id="overlay">
+        <div class="overlay-title">🎮 기괴한 테트리스</div>
+        <div class="overlay-sub">블록을 믿지 마세요</div>
+        <button class="btn" onclick="startGame()" style="width:130px;margin-top:4px">시작하기</button>
+      </div>
+    </div>
+
+    <div class="side-panel" id="side-panel">
+      <div class="panel-box">
+        <div class="panel-label">점수</div>
+        <div class="panel-value" id="score">0</div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-label">레벨</div>
+        <div class="panel-value" id="level">1</div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-label">다음</div>
+        <canvas id="next"></canvas>
+      </div>
+      <div class="panel-box weird-msg" id="weird-msg"> </div>
+      <button class="btn" onclick="startGame()">재시작</button>
+      <div class="controls-hint">
+        ← → 이동<br>
+        ↑ 회전<br>
+        ↓ 빠르게<br>
+        Space 즉시낙하
+      </div>
+    </div>
+  </div>
+
+  <!-- Touch controls (shown on touch devices) -->
+  <div class="touch-controls" id="touch-controls">
+    <button class="tc-btn" id="tc-left">◀</button>
+    <button class="tc-btn" id="tc-rotate">↑</button>
+    <button class="tc-btn" id="tc-down">▼</button>
+    <button class="tc-btn" id="tc-right">▶</button>
+    <button class="tc-btn" id="tc-drop">⬇</button>
+  </div>
+</div>
+
+<script>
+const COLS = 10, ROWS = 20;
+let CELL = 20;       // recalculated on resize
+let NEXT_CELL = 14;
+
+const canvas    = document.getElementById('board');
+const ctx       = canvas.getContext('2d');
+const nextCanvas= document.getElementById('next');
+const nctx      = nextCanvas.getContext('2d');
+
+/* ── Responsive sizing ── */
+function calcLayout() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // usable area (80% of viewport, minus header/title/controls space)
+  const titleH   = document.querySelector('h1').offsetHeight + 12;
+  const touchH   = window.matchMedia('(pointer: coarse)').matches ? 64 : 0;
+  const padV      = 56 + 12 + 12; // top pad + gaps
+  const usableH   = vh * 0.88 - padV - titleH - touchH;
+  const usableW   = vw * 0.88;
+
+  // side panel is ~120px wide on desktop; on very narrow screens it compresses
+  const sidePanelW = Math.max(90, Math.min(130, vw * 0.22));
+  const boardMaxW  = usableW - sidePanelW - 16; // 16 = gap
+
+  const cellByH = Math.floor(usableH / ROWS);
+  const cellByW = Math.floor(boardMaxW / COLS);
+  CELL = Math.max(12, Math.min(cellByH, cellByW));
+  NEXT_CELL = Math.max(10, Math.round(CELL * 0.65));
+
+  const bw = COLS * CELL;
+  const bh = ROWS * CELL;
+  const nw = 4 * NEXT_CELL + 4;
+
+  canvas.width  = bw;
+  canvas.height = bh;
+  nextCanvas.width  = nw;
+  nextCanvas.height = nw;
+
+  // side panel width
+  document.getElementById('side-panel').style.width = sidePanelW + 'px';
+
+  // touch buttons size
+  const btnSz = Math.max(48, Math.min(64, vw * 0.14)) + 'px';
+  document.querySelectorAll('.tc-btn').forEach(b => {
+    b.style.width = btnSz;
+    b.style.height = btnSz;
+  });
+
+  if (gameRunning) { draw(); drawNext(); }
+}
+
+/* ── Game state ── */
+const PIECES = [
+  { shape: [[1,1,1,1]], color: '#00c6ff' },
+  { shape: [[1,1],[1,1]], color: '#a78bfa' },
+  { shape: [[1,1,1],[0,1,0]], color: '#f472b6' },
+  { shape: [[1,1,1],[1,0,0]], color: '#fb923c' },
+  { shape: [[1,1,1],[0,0,1]], color: '#34d399' },
+  { shape: [[1,1,0],[0,1,1]], color: '#facc15' },
+  { shape: [[0,1,1],[1,1,0]], color: '#c084fc' },
+];
+
+const WEIRD_EVENTS = [
+  { msg: "중력이 잠깐 반전됩니다!", fn: triggerGravityFlip },
+  { msg: "블록이 랜덤 텔레포트!", fn: triggerTeleport },
+  { msg: "색깔이 미쳐갑니다...", fn: triggerColorRave },
+  { msg: "블록이 스스로 회전합니다!", fn: triggerAutoRotate },
+  { msg: "미러 모드 발동!", fn: triggerMirror },
+];
+
+let board, current, next, score, level, lines, gameRunning, dropTimer, dropInterval;
+let weirdTimer, colorRaveActive, mirrorMode, gravityFlipped;
+
+function createBoard() {
+  return Array.from({length: ROWS}, () => Array(COLS).fill(0));
+}
+
+function randomPiece() {
+  const p = PIECES[Math.floor(Math.random() * PIECES.length)];
+  return {
+    shape: p.shape.map(r => [...r]),
+    color: p.color,
+    x: Math.floor(COLS / 2) - Math.floor(p.shape[0].length / 2),
+    y: 0,
+  };
+}
+
+function rotate(shape) {
+  const rows = shape.length, cols = shape[0].length;
+  return Array.from({length: cols}, (_, c) =>
+    Array.from({length: rows}, (_, r) => shape[rows - 1 - r][c])
+  );
+}
+
+function valid(shape, ox, oy) {
+  for (let r = 0; r < shape.length; r++)
+    for (let c = 0; c < shape[r].length; c++)
+      if (shape[r][c]) {
+        const nx = ox + c, ny = oy + r;
+        if (nx < 0 || nx >= COLS || ny >= ROWS) return false;
+        if (ny >= 0 && board[ny][nx]) return false;
+      }
+  return true;
+}
+
+function place() {
+  for (let r = 0; r < current.shape.length; r++)
+    for (let c = 0; c < current.shape[r].length; c++)
+      if (current.shape[r][c]) {
+        const ny = current.y + r;
+        if (ny < 0) { endGame(); return; }
+        board[ny][current.x + c] = current.color;
+      }
+  clearLines();
+  current = next;
+  next = randomPiece();
+  if (!valid(current.shape, current.x, current.y)) { endGame(); return; }
+  drawNext();
+}
+
+function clearLines() {
+  let cleared = 0;
+  for (let r = ROWS - 1; r >= 0; r--) {
+    if (board[r].every(c => c)) {
+      board.splice(r, 1);
+      board.unshift(Array(COLS).fill(0));
+      cleared++; r++;
+    }
+  }
+  if (cleared) {
+    lines += cleared;
+    score += [0, 100, 300, 500, 800][cleared] * level;
+    level = Math.floor(lines / 10) + 1;
+    dropInterval = Math.max(100, 800 - (level - 1) * 70);
+    document.getElementById('score').textContent = score;
+    document.getElementById('level').textContent = level;
+  }
+}
+
+function drop() {
+  const ny = current.y + (gravityFlipped ? -1 : 1);
+  if (valid(current.shape, current.x, ny)) {
+    current.y = ny;
+  } else {
+    if (gravityFlipped) gravityFlipped = false;
+    place();
+  }
+}
+
+function hardDrop() {
+  while (valid(current.shape, current.x, current.y + 1)) current.y++;
+  place();
+}
+
+/* ── Drawing ── */
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawGrid();
+  drawBoard();
+  drawGhost();
+  drawPiece(ctx, current, CELL);
+}
+
+function drawGrid() {
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+  for (let r = 0; r <= ROWS; r++) { ctx.beginPath(); ctx.moveTo(0, r*CELL); ctx.lineTo(COLS*CELL, r*CELL); ctx.stroke(); }
+  for (let c = 0; c <= COLS; c++) { ctx.beginPath(); ctx.moveTo(c*CELL, 0); ctx.lineTo(c*CELL, ROWS*CELL); ctx.stroke(); }
+}
+
+function drawBoard() {
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (board[r][c]) drawCell(ctx, c, r, colorRaveActive ? randomColor() : board[r][c], CELL);
+}
+
+function drawGhost() {
+  let gy = current.y;
+  while (valid(current.shape, current.x, gy + 1)) gy++;
+  ctx.globalAlpha = 0.2;
+  for (let r = 0; r < current.shape.length; r++)
+    for (let c = 0; c < current.shape[r].length; c++)
+      if (current.shape[r][c])
+        drawCell(ctx, current.x + c, gy + r, current.color, CELL);
+  ctx.globalAlpha = 1;
+}
+
+function drawPiece(c, piece, cell) {
+  for (let r = 0; r < piece.shape.length; r++)
+    for (let col = 0; col < piece.shape[r].length; col++)
+      if (piece.shape[r][col])
+        drawCell(c, piece.x + col, piece.y + r, piece.color, cell);
+}
+
+function drawCell(c, x, y, color, cell) {
+  const pad = Math.max(1, Math.round(cell * 0.05));
+  c.fillStyle = color;
+  c.fillRect(x*cell+pad, y*cell+pad, cell-pad*2, cell-pad*2);
+  c.fillStyle = 'rgba(255,255,255,0.2)';
+  c.fillRect(x*cell+pad, y*cell+pad, cell-pad*2, Math.max(2, Math.round(cell*0.15)));
+}
+
+function drawNext() {
+  const nw = nextCanvas.width;
+  nctx.clearRect(0, 0, nw, nw);
+  const p = next;
+  const cell = NEXT_CELL;
+  const ox = Math.floor((nw - p.shape[0].length * cell) / 2);
+  const oy = Math.floor((nw - p.shape.length * cell) / 2);
+  for (let r = 0; r < p.shape.length; r++)
+    for (let c = 0; c < p.shape[r].length; c++)
+      if (p.shape[r][c]) {
+        const px = ox + c * cell, py = oy + r * cell;
+        const pad = Math.max(1, Math.round(cell * 0.06));
+        nctx.fillStyle = p.color;
+        nctx.fillRect(px+pad, py+pad, cell-pad*2, cell-pad*2);
+        nctx.fillStyle = 'rgba(255,255,255,0.2)';
+        nctx.fillRect(px+pad, py+pad, cell-pad*2, Math.max(2, Math.round(cell*0.15)));
+      }
+}
+
+function randomColor() {
+  return `hsl(${Math.floor(Math.random()*360)},80%,60%)`;
+}
+
+/* ── Weird events ── */
+function triggerGravityFlip() {
+  gravityFlipped = true;
+  setTimeout(() => { gravityFlipped = false; }, 3000);
+}
+function triggerTeleport() {
+  current.x = Math.floor(Math.random() * (COLS - current.shape[0].length));
+}
+function triggerColorRave() {
+  colorRaveActive = true;
+  setTimeout(() => { colorRaveActive = false; }, 4000);
+}
+function triggerAutoRotate() {
+  let count = 0;
+  const iv = setInterval(() => {
+    const rotated = rotate(current.shape);
+    if (valid(rotated, current.x, current.y)) current.shape = rotated;
+    if (++count >= 3) clearInterval(iv);
+  }, 600);
+}
+function triggerMirror() {
+  mirrorMode = true;
+  setTimeout(() => { mirrorMode = false; }, 5000);
+}
+
+function scheduleWeirdEvent() {
+  weirdTimer = setTimeout(() => {
+    if (!gameRunning) return;
+    const ev = WEIRD_EVENTS[Math.floor(Math.random() * WEIRD_EVENTS.length)];
+    setWeirdMsg(ev.msg);
+    ev.fn();
+    scheduleWeirdEvent();
+  }, 8000 + Math.random() * 8000);
+}
+
+function setWeirdMsg(msg) {
+  const el = document.getElementById('weird-msg');
+  el.textContent = msg;
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = 'pulse 1s ease-in-out 3';
+  setTimeout(() => { el.textContent = ' '; }, 4000);
+}
+
+/* ── Game loop ── */
+function gameLoop() {
+  if (!gameRunning) return;
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+function startDropTimer() {
+  clearInterval(dropTimer);
+  dropTimer = setInterval(() => { if (gameRunning) drop(); }, dropInterval);
+}
+
+function startGame() {
+  board = createBoard();
+  score = 0; level = 1; lines = 0;
+  dropInterval = 800;
+  colorRaveActive = false; mirrorMode = false; gravityFlipped = false;
+  document.getElementById('score').textContent = '0';
+  document.getElementById('level').textContent = '1';
+  document.getElementById('weird-msg').textContent = ' ';
+  document.getElementById('overlay').style.display = 'none';
+  clearTimeout(weirdTimer);
+  clearInterval(dropTimer);
+  current = randomPiece();
+  next = randomPiece();
+  drawNext();
+  gameRunning = true;
+  scheduleWeirdEvent();
+  startDropTimer();
+  gameLoop();
+}
+
+function endGame() {
+  gameRunning = false;
+  clearInterval(dropTimer);
+  clearTimeout(weirdTimer);
+  const ov = document.getElementById('overlay');
+  ov.innerHTML = `
+    <div class="overlay-title">💀 게임 오버</div>
+    <div class="overlay-sub">점수: ${score}</div>
+    <button class="btn" onclick="startGame()" style="width:130px;margin-top:6px">다시하기</button>
+  `;
+  ov.style.display = 'flex';
+}
+
+/* ── Keyboard ── */
+document.addEventListener('keydown', e => {
+  if (!gameRunning) return;
+  const mv = mirrorMode ? -1 : 1;
+  switch(e.key) {
+    case 'ArrowLeft':  e.preventDefault(); if (valid(current.shape, current.x - mv, current.y)) current.x -= mv; break;
+    case 'ArrowRight': e.preventDefault(); if (valid(current.shape, current.x + mv, current.y)) current.x += mv; break;
+    case 'ArrowUp':    e.preventDefault(); { const rot = rotate(current.shape); if (valid(rot, current.x, current.y)) current.shape = rot; } break;
+    case 'ArrowDown':  e.preventDefault(); drop(); break;
+    case ' ':          e.preventDefault(); hardDrop(); break;
+  }
+});
+
+/* ── Touch controls ── */
+function bindTc(id, fn) {
+  const el = document.getElementById(id);
+  let iv;
+  el.addEventListener('touchstart', e => { e.preventDefault(); fn(); iv = setInterval(fn, 130); }, { passive: false });
+  el.addEventListener('touchend',   () => clearInterval(iv));
+  el.addEventListener('mousedown',  () => { fn(); iv = setInterval(fn, 130); });
+  el.addEventListener('mouseup',    () => clearInterval(iv));
+}
+
+bindTc('tc-left',   () => { if (gameRunning) { const mv = mirrorMode?-1:1; if (valid(current.shape, current.x - mv, current.y)) current.x -= mv; }});
+bindTc('tc-right',  () => { if (gameRunning) { const mv = mirrorMode?-1:1; if (valid(current.shape, current.x + mv, current.y)) current.x += mv; }});
+bindTc('tc-down',   () => { if (gameRunning) drop(); });
+document.getElementById('tc-rotate').addEventListener('touchstart', e => { e.preventDefault(); if (gameRunning) { const r=rotate(current.shape); if(valid(r,current.x,current.y)) current.shape=r; }}, {passive:false});
+document.getElementById('tc-rotate').addEventListener('click', () => { if (gameRunning) { const r=rotate(current.shape); if(valid(r,current.x,current.y)) current.shape=r; }});
+document.getElementById('tc-drop').addEventListener('touchstart', e => { e.preventDefault(); if (gameRunning) hardDrop(); }, {passive:false});
+document.getElementById('tc-drop').addEventListener('click', () => { if (gameRunning) hardDrop(); });
+
+/* ── Swipe ── */
+let touchStartX, touchStartY;
+canvas.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }, {passive:true});
+canvas.addEventListener('touchend', e => {
+  if (!gameRunning) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) < 10 && Math.abs(dy) < 10) { const r=rotate(current.shape); if(valid(r,current.x,current.y)) current.shape=r; }
+  else if (Math.abs(dx) > Math.abs(dy)) { const mv=mirrorMode?-1:1; if(dx>0){ if(valid(current.shape,current.x+mv,current.y)) current.x+=mv; } else { if(valid(current.shape,current.x-mv,current.y)) current.x-=mv; }}
+  else if (dy > 30) hardDrop();
+}, {passive:true});
+
+/* ── Resize ── */
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(calcLayout, 80);
+});
+
+// Init
+calcLayout();
+</script>
+</body>
+</html>
