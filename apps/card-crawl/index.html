@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>던전 카드 크롤</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --text-sub: rgba(240,240,245,0.55);
+    --gold: #c9a227;
+    --gold-bright: #e8c86b;
+    --blood: #b23a3a;
+    --heal: #34d399;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    color: var(--text);
+    background-color: #0d0d1a;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 15%, rgba(201,162,39,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 85% 85%, rgba(123,47,255,0.2) 0%, transparent 55%);
+    overflow: hidden;
+  }
+
+  .back {
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 30;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem;
+    color: var(--text-sub);
+    text-decoration: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 7px 13px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    transition: color 0.2s, background 0.2s;
+  }
+  .back:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+  .page {
+    width: 100%; height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 54px 10px 10px;
+  }
+
+  h1 {
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #fff 0%, var(--gold-bright) 55%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    flex-shrink: 0;
+  }
+
+  /* ── Top stats bar ── */
+  .stats-bar {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 640px;
+    justify-content: center;
+  }
+
+  .stat-box {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 8px 16px;
+    backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 90px;
+    justify-content: center;
+  }
+
+  .stat-icon { font-size: 1.1rem; }
+  .stat-value { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+
+  .hp-box { flex: 1; max-width: 220px; flex-direction: column; align-items: stretch; gap: 4px; }
+  .hp-top { display: flex; justify-content: space-between; align-items: center; }
+  .hp-track {
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+  }
+  .hp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blood), #e08a8a);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── Main game area ── */
+  .game-area {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .field-wrap {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .side-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .slot-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-sub);
+    text-align: center;
+    margin-bottom: 3px;
+  }
+
+  /* ── Card visuals ── */
+  .card {
+    position: relative;
+    border-radius: 10px;
+    background: linear-gradient(160deg, #ece0c4, #d8caa4);
+    color: #2a2016;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid rgba(0,0,0,0.25);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .card:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 12px 24px rgba(0,0,0,0.5); }
+  .card:active { transform: translateY(-1px) scale(0.98); }
+
+  .card .rank { font-weight: 800; letter-spacing: -0.02em; font-family: 'Cinzel', serif, -apple-system; }
+  .card .suit { line-height: 1; }
+  .card .type-label { font-size: 0.55em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.75; margin-top: 2px; }
+
+  .card.monster { background: linear-gradient(160deg, #3a2a2a, #241717); color: #f0d8d8; border-color: rgba(178,58,58,0.6); }
+  .card.weapon  { background: linear-gradient(160deg, #2a3040, #1a2028); color: #cfe0f5; border-color: rgba(56,189,248,0.5); }
+  .card.shield  { background: linear-gradient(160deg, #263528, #17211a); color: #cfe8d8; border-color: rgba(52,211,153,0.5); }
+  .card.potion  { background: linear-gradient(160deg, #3a2440, #241728); color: #ecd8f5; border-color: rgba(167,139,250,0.5); }
+  .card.gold    { background: linear-gradient(160deg, var(--gold-bright), var(--gold)); color: #2a2016; border-color: rgba(0,0,0,0.3); }
+
+  .card.empty {
+    background: rgba(255,255,255,0.03);
+    border: 2px dashed rgba(255,255,255,0.12);
+    cursor: default;
+    color: var(--text-sub);
+    font-size: 0.7rem;
+  }
+  .card.empty:hover { transform: none; box-shadow: none; }
+
+  .card-in {
+    animation: cardDeal 0.35s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes cardDeal {
+    from { opacity: 0; transform: translateY(-16px) scale(0.85); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .card-out {
+    animation: cardGone 0.28s ease forwards;
+    pointer-events: none;
+  }
+  @keyframes cardGone {
+    to { opacity: 0; transform: scale(0.7) translateY(10px); }
+  }
+
+  /* ── Bottom controls / hint ── */
+  .controls-hint {
+    font-size: 0.68rem;
+    color: var(--text-sub);
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Overlays ── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0,0,0,0.78);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    backdrop-filter: blur(6px);
+    padding: 20px;
+    text-align: center;
+  }
+  .overlay.show { display: flex; }
+  .overlay-title { font-size: clamp(1.1rem, 4vw, 1.6rem); font-weight: 700; }
+  .overlay-sub { color: var(--text-sub); font-size: 0.85rem; max-width: 320px; }
+
+  .modal-box {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px;
+    backdrop-filter: blur(24px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 320px;
+    width: 100%;
+  }
+
+  .btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+  .btn:hover { background: rgba(255,255,255,0.16); }
+  .btn.primary { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: #2a2016; border: none; }
+  .btn.primary:hover { opacity: 0.9; }
+
+  /* ── Mobile: field 2x2, side slots below ── */
+  @media (max-width: 640px) {
+    .game-area { flex-direction: column; }
+    .field-wrap { grid-template-columns: repeat(2, 1fr); }
+    .side-slots { flex-direction: row; }
+  }
+</style>
+</head>
+<body>
+<a class="back" href="../../index.html">← 홈으로</a>
+
+<div class="page">
+  <h1>🗡️ 던전 카드 크롤</h1>
+
+  <div class="stats-bar">
+    <div class="stat-box hp-box">
+      <div class="hp-top">
+        <span class="stat-icon">❤️</span>
+        <span class="stat-value" id="hp-value">13</span>
+      </div>
+      <div class="hp-track"><div class="hp-fill" id="hp-fill" style="width:100%"></div></div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-icon">💰</span>
+      <span class="stat-value" id="gold-value">0</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-icon">🂠</span>
+      <span class="stat-value" id="deck-value">52</span>
+    </div>
+  </div>
+
+  <div class="game-area" id="game-area">
+    <div class="field-wrap" id="field-wrap"></div>
+
+    <div class="side-slots">
+      <div>
+        <div class="slot-label">무기</div>
+        <div class="card empty" id="slot-weapon">비어있음</div>
+      </div>
+      <div>
+        <div class="slot-label">방패</div>
+        <div class="card empty" id="slot-shield">비어있음</div>
+      </div>
+      <div>
+        <div class="slot-label">배낭</div>
+        <div class="card empty" id="slot-backpack">비어있음</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls-hint">카드를 클릭해 처리하세요 · 몬스터는 무기/방패/맨몸 중 선택</div>
+</div>
+
+<!-- Start overlay -->
+<div class="overlay show" id="overlay-start">
+  <div class="modal-box">
+    <div class="overlay-title">🗡️ 던전 카드 크롤</div>
+    <div class="overlay-sub">체력 13으로 시작해 던전 카드를 모두 헤쳐나가세요. 몬스터, 무기, 방패, 물약, 골드가 뒤섞인 카드를 클릭해 하나씩 처리합니다.</div>
+    <button class="btn primary" onclick="startGame()">모험 시작</button>
+  </div>
+</div>
+
+<!-- Monster action overlay -->
+<div class="overlay" id="overlay-monster">
+  <div class="modal-box" id="monster-modal-box"></div>
+</div>
+
+<!-- Potion action overlay -->
+<div class="overlay" id="overlay-potion">
+  <div class="modal-box" id="potion-modal-box"></div>
+</div>
+
+<!-- End overlay -->
+<div class="overlay" id="overlay-end">
+  <div class="modal-box" id="end-modal-box"></div>
+</div>
+
+<script>
+const SUITS = ['♠','♣','♦','♥'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RANK_VALUES = { 'A':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13 };
+
+let state = null;
+
+function rankValue(r) { return RANK_VALUES[r]; }
+
+function cardType(card) {
+  if (card.suit === '♠' || card.suit === '♣') return 'monster';
+  if (card.suit === '♦') return (rankValue(card.rank) % 2 === 1) ? 'weapon' : 'shield';
+  // hearts
+  return (rankValue(card.rank) % 2 === 1) ? 'potion' : 'gold';
+}
+
+function createDeck() {
+  const deck = [];
+  for (const suit of SUITS)
+    for (const rank of RANKS)
+      deck.push({ suit, rank, value: rankValue(rank), id: suit + rank });
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
+}
+
+function startGame() {
+  state = {
+    hp: 13, maxHp: 13,
+    gold: 0,
+    deck: createDeck(),
+    field: [null, null, null, null],
+    weapon: null, shield: null, backpack: null,
+    running: true,
+  };
+  hideOverlay('overlay-start');
+  drawToField();
+  render();
+}
+
+function drawToField() {
+  for (let i = 0; i < 4; i++) {
+    if (!state.field[i] && state.deck.length > 0) {
+      state.field[i] = state.deck.pop();
+    }
+  }
+}
+
+/* ── Card click dispatch ── */
+function handleFieldClick(idx) {
+  if (!state.running) return;
+  const card = state.field[idx];
+  if (!card) return;
+  const type = cardType(card);
+
+  if (type === 'monster') {
+    openMonsterModal(idx, card);
+  } else if (type === 'weapon') {
+    equip('weapon', idx, card);
+  } else if (type === 'shield') {
+    equip('shield', idx, card);
+  } else if (type === 'potion') {
+    openPotionModal(idx, card);
+  } else if (type === 'gold') {
+    state.gold += card.value;
+    clearFieldSlot(idx);
+  }
+}
+
+function clearFieldSlot(idx) {
+  state.field[idx] = null;
+  render();
+  setTimeout(() => { drawToField(); render(); checkGameEnd(); }, 120);
+}
+
+function equip(slotName, idx, card) {
+  // swap: old equipped card is simply discarded
+  state[slotName] = card;
+  clearFieldSlot(idx);
+}
+
+/* ── Monster resolution ── */
+function openMonsterModal(idx, card) {
+  const box = document.getElementById('monster-modal-box');
+  const opts = [];
+
+  opts.push(`<div class="overlay-title" style="font-size:1.1rem">👹 몬스터 (${card.rank}${card.suit}) · 위력 ${card.value}</div>`);
+
+  opts.push(`<button class="btn" onclick="resolveMonster(${idx}, 'bare')">맨몸으로 공격 (체력 -${card.value})</button>`);
+
+  if (state.weapon) {
+    opts.push(`<button class="btn primary" onclick="resolveMonster(${idx}, 'weapon')">무기로 공격 (${state.weapon.rank}${state.weapon.suit}, 위력 ${state.weapon.value})</button>`);
+  }
+  if (state.shield) {
+    const dmg = Math.max(0, card.value - state.shield.value);
+    opts.push(`<button class="btn" onclick="resolveMonster(${idx}, 'shield')">방패로 막기 (${state.shield.rank}${state.shield.suit} · 체력 -${dmg})</button>`);
+  }
+
+  box.innerHTML = opts.join('');
+  showOverlay('overlay-monster');
+}
+
+function resolveMonster(idx, mode) {
+  const card = state.field[idx];
+  if (mode === 'bare') {
+    state.hp -= card.value;
+  } else if (mode === 'weapon') {
+    // weapon deals damage; monster always dies, weapon wears down by monster value
+    state.weapon.value -= card.value;
+    if (state.weapon.value <= 0) state.weapon = null;
+  } else if (mode === 'shield') {
+    const dmg = Math.max(0, card.value - state.shield.value);
+    state.hp -= dmg;
+    state.shield.value -= card.value;
+    if (state.shield.value <= 0) state.shield = null;
+  }
+  hideOverlay('overlay-monster');
+  clearFieldSlot(idx);
+}
+
+/* ── Potion resolution ── */
+function openPotionModal(idx, card) {
+  const box = document.getElementById('potion-modal-box');
+  const opts = [];
+  opts.push(`<div class="overlay-title" style="font-size:1.1rem">🧪 물약 (${card.rank}${card.suit}) · 회복 ${card.value}</div>`);
+  opts.push(`<button class="btn primary" onclick="resolvePotion(${idx}, 'drink')">즉시 마시기 (체력 +${card.value})</button>`);
+  if (!state.backpack) {
+    opts.push(`<button class="btn" onclick="resolvePotion(${idx}, 'store')">배낭에 보관하기</button>`);
+  }
+  box.innerHTML = opts.join('');
+  showOverlay('overlay-potion');
+}
+
+function resolvePotion(idx, mode) {
+  const card = state.field[idx];
+  if (mode === 'drink') {
+    state.hp = Math.min(state.maxHp, state.hp + card.value);
+    clearFieldSlot(idx);
+  } else if (mode === 'store') {
+    state.backpack = card;
+    state.field[idx] = null;
+    render();
+    setTimeout(() => { drawToField(); render(); }, 120);
+  }
+  hideOverlay('overlay-potion');
+}
+
+function useBackpack() {
+  if (!state.backpack || !state.running) return;
+  state.hp = Math.min(state.maxHp, state.hp + state.backpack.value);
+  state.backpack = null;
+  render();
+  checkGameEnd();
+}
+
+/* ── Game end ── */
+function checkGameEnd() {
+  if (!state.running) return;
+  if (state.hp <= 0) {
+    state.hp = 0;
+    state.running = false;
+    render();
+    showEnd(false);
+  } else if (state.deck.length === 0 && state.field.every(c => c === null)) {
+    state.running = false;
+    render();
+    showEnd(true);
+  }
+}
+
+function showEnd(won) {
+  const box = document.getElementById('end-modal-box');
+  const score = state.hp + state.gold;
+  box.innerHTML = won
+    ? `<div class="overlay-title">🏆 던전 클리어!</div>
+       <div class="overlay-sub">남은 체력 ${state.hp} + 골드 ${state.gold} = <b>${score}점</b></div>
+       <button class="btn primary" onclick="restart()">다시 도전</button>`
+    : `<div class="overlay-title">💀 쓰러지다...</div>
+       <div class="overlay-sub">골드 ${state.gold}개를 모았지만 던전에 쓰러졌습니다.</div>
+       <button class="btn primary" onclick="restart()">다시 도전</button>`;
+  showOverlay('overlay-end');
+}
+
+function restart() {
+  hideOverlay('overlay-end');
+  startGame();
+}
+
+/* ── Overlay helpers ── */
+function showOverlay(id) { document.getElementById(id).classList.add('show'); }
+function hideOverlay(id) { document.getElementById(id).classList.remove('show'); }
+
+/* ── Rendering ── */
+function suitColorClass(card) { return cardType(card); }
+
+function renderCard(card, container, onClick) {
+  if (!card) {
+    container.className = 'card empty';
+    container.textContent = '';
+    container.onclick = null;
+    return;
+  }
+  const type = cardType(card);
+  container.className = `card ${type} card-in`;
+  const icon = { monster: '👹', weapon: '⚔️', shield: '🛡️', potion: '🧪', gold: '💰' }[type];
+  const label = { monster: '몬스터', weapon: '무기', shield: '방패', potion: '물약', gold: '골드' }[type];
+  container.innerHTML = `
+    <div class="rank" style="font-size:1.3em">${card.rank}${card.suit}</div>
+    <div class="suit" style="font-size:1.5em">${icon}</div>
+    <div class="type-label">${label} ${card.value}</div>
+  `;
+  container.onclick = onClick;
+}
+
+function render() {
+  if (!state) return;
+
+  document.getElementById('hp-value').textContent = state.hp;
+  document.getElementById('hp-fill').style.width = `${Math.max(0, (state.hp / state.maxHp) * 100)}%`;
+  document.getElementById('gold-value').textContent = state.gold;
+  document.getElementById('deck-value').textContent = state.deck.length;
+
+  const fieldWrap = document.getElementById('field-wrap');
+  fieldWrap.innerHTML = '';
+  state.field.forEach((card, idx) => {
+    const el = document.createElement('div');
+    fieldWrap.appendChild(el);
+    renderCard(card, el, () => handleFieldClick(idx));
+  });
+
+  renderCard(state.weapon, document.getElementById('slot-weapon'), null);
+  if (!state.weapon) document.getElementById('slot-weapon').textContent = '비어있음';
+
+  renderCard(state.shield, document.getElementById('slot-shield'), null);
+  if (!state.shield) document.getElementById('slot-shield').textContent = '비어있음';
+
+  renderCard(state.backpack, document.getElementById('slot-backpack'), state.backpack ? useBackpack : null);
+  if (!state.backpack) document.getElementById('slot-backpack').textContent = '비어있음';
+}
+
+/* ── Responsive layout ── */
+const ASPECT = 1.35; // card height / width
+
+function calcLayout() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const isMobile = vw <= 640;
+
+  const h1El = document.querySelector('h1');
+  const statsEl = document.querySelector('.stats-bar');
+  const hintEl = document.querySelector('.controls-hint');
+  const pageEl = document.querySelector('.page');
+  const pageStyle = getComputedStyle(pageEl);
+  const padTop = parseFloat(pageStyle.paddingTop);
+  const padBottom = parseFloat(pageStyle.paddingBottom);
+  const gap = parseFloat(pageStyle.gap) || 10;
+
+  // vertical space used by everything except the game area itself
+  const chromeH = padTop + padBottom + h1El.offsetHeight + statsEl.offsetHeight + hintEl.offsetHeight + gap * 3;
+  const availH = Math.max(120, vh - chromeH);
+  const availW = vw * 0.94;
+
+  let cardW, cardH, sideW, sideH;
+
+  if (isMobile) {
+    // field: 2x2 grid on top, side-slots row below
+    const rowGap = 10;
+    const sideRowH = Math.min(availH * 0.28, 130);
+    const fieldAvailH = availH - sideRowH - rowGap;
+
+    const cardHByHeight = fieldAvailH / 2 - rowGap / 2;
+    const cardWByWidth = (availW - 10) / 2;
+    const cardWByHeight = cardHByHeight / ASPECT;
+
+    cardW = Math.min(cardWByWidth, cardWByHeight);
+    cardH = cardW * ASPECT;
+
+    const sideHByRow = sideRowH - 16; // reserve for label text
+    const sideWByRow = (availW - 20) / 3;
+    sideH = Math.min(sideHByRow, sideWByRow * ASPECT);
+    sideW = sideH / ASPECT;
+  } else {
+    // field: single row of 4 cards + side column of 3 stacked cards
+    const sideColW = Math.min(100, availW * 0.14);
+    const fieldAvailW = availW - sideColW - 14;
+
+    const cardWByWidth = (fieldAvailW - 30) / 4;
+    const cardHByHeight = availH;
+    const cardHByWidth = cardWByWidth * ASPECT;
+
+    cardH = Math.min(cardHByHeight, cardHByWidth);
+    cardW = cardH / ASPECT;
+
+    const sideHByCol = (availH - 20 - 3 * 16) / 3; // 3 labels + 2 gaps
+    sideW = Math.min(sideColW, sideHByCol / ASPECT);
+    sideH = sideW * ASPECT;
+  }
+
+  document.querySelectorAll('#field-wrap .card').forEach(el => {
+    el.style.width = cardW + 'px';
+    el.style.height = cardH + 'px';
+  });
+  document.querySelectorAll('.side-slots .card').forEach(el => {
+    el.style.width = sideW + 'px';
+    el.style.height = sideH + 'px';
+  });
+
+  document.getElementById('field-wrap').style.gap = Math.max(6, cardW * 0.08) + 'px';
+}
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(calcLayout, 80);
+});
+
+// re-apply sizing whenever DOM cards are rebuilt
+const origRender = render;
+render = function() {
+  origRender();
+  calcLayout();
+};
+
+calcLayout();
+</script>
+</body>
+</html>
