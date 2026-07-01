@@ -5,27 +5,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>던전 카드 크롤</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --glass-bg: rgba(255,255,255,0.06);
+    --glass-bg: rgba(255,255,255,0.05);
     --glass-border: rgba(255,255,255,0.12);
-    --text: #f0f0f5;
-    --text-sub: rgba(240,240,245,0.55);
+    --text: #eaf6ff;
+    --text-sub: rgba(200,225,245,0.55);
     --gold: #c9a227;
-    --gold-bright: #e8c86b;
-    --blood: #b23a3a;
-    --heal: #34d399;
+    --gold-bright: #ffd60a;
+
+    /* Neo-future neon palette */
+    --neon-monster: #ff2e6c;
+    --neon-monster-glow: rgba(255,46,108,0.55);
+    --neon-weapon: #ff5f2e;
+    --neon-weapon-glow: rgba(255,95,46,0.55);
+    --neon-shield: #2de2ff;
+    --neon-shield-glow: rgba(45,226,255,0.55);
+    --neon-potion: #39ff88;
+    --neon-potion-glow: rgba(57,255,136,0.55);
+    --neon-gold: #ffd60a;
+    --neon-gold-glow: rgba(255,214,10,0.55);
   }
 
   html, body {
     width: 100%; height: 100%;
-    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    font-family: 'Rajdhani', -apple-system, "SF Pro Display", system-ui, sans-serif;
     color: var(--text);
-    background-color: #0d0d1a;
+    background-color: #07070f;
     background-image:
-      radial-gradient(ellipse 80% 60% at 20% 15%, rgba(201,162,39,0.18) 0%, transparent 55%),
-      radial-gradient(ellipse 70% 50% at 85% 85%, rgba(123,47,255,0.2) 0%, transparent 55%);
+      radial-gradient(ellipse 70% 50% at 15% 10%, rgba(255,46,140,0.14) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 45% at 90% 15%, rgba(45,226,255,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 60% at 50% 100%, rgba(123,47,255,0.18) 0%, transparent 55%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 34px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 34px);
     overflow: hidden;
   }
 
@@ -34,17 +49,19 @@
     top: 16px; left: 16px;
     z-index: 30;
     display: flex; align-items: center; gap: 6px;
+    font-family: 'Rajdhani', sans-serif;
     font-size: 0.82rem;
+    font-weight: 600;
     color: var(--text-sub);
     text-decoration: none;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: rgba(15,16,26,0.7);
+    border: 1px solid rgba(45,226,255,0.25);
     padding: 7px 13px;
     border-radius: 20px;
     backdrop-filter: blur(12px);
-    transition: color 0.2s, background 0.2s;
+    transition: color 0.2s, background 0.2s, box-shadow 0.2s;
   }
-  .back:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+  .back:hover { color: var(--text); background: rgba(45,226,255,0.1); box-shadow: 0 0 12px rgba(45,226,255,0.25); }
 
   .page {
     width: 100%; height: 100vh;
@@ -57,13 +74,16 @@
   }
 
   h1 {
-    font-size: clamp(1rem, 3vw, 1.4rem);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    background: linear-gradient(135deg, #fff 0%, var(--gold-bright) 55%, #a78bfa 100%);
+    font-family: 'Orbitron', 'Rajdhani', sans-serif;
+    font-size: clamp(0.85rem, 2.6vw, 1.25rem);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #fff 0%, var(--neon-shield) 45%, var(--neon-monster) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: drop-shadow(0 0 10px rgba(45,226,255,0.35));
     flex-shrink: 0;
   }
 
@@ -78,9 +98,9 @@
   }
 
   .stat-box {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
+    background: linear-gradient(160deg, rgba(20,22,34,0.85), rgba(10,10,18,0.85));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
     padding: 8px 16px;
     backdrop-filter: blur(16px);
     display: flex;
@@ -88,24 +108,34 @@
     gap: 8px;
     min-width: 90px;
     justify-content: center;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
   }
 
-  .stat-icon { font-size: 1.1rem; }
-  .stat-value { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+  .stat-icon { font-size: 1.1rem; filter: drop-shadow(0 0 4px currentColor); }
+  .stat-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    text-shadow: 0 0 8px rgba(255,255,255,0.25);
+  }
 
-  .hp-box { flex: 1; max-width: 220px; flex-direction: column; align-items: stretch; gap: 4px; }
+  .hp-box { flex: 1; max-width: 220px; flex-direction: column; align-items: stretch; gap: 4px; border-color: rgba(255,46,108,0.3); }
   .hp-top { display: flex; justify-content: space-between; align-items: center; }
   .hp-track {
     height: 8px;
     border-radius: 4px;
     background: rgba(255,255,255,0.08);
     overflow: hidden;
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.5);
   }
   .hp-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--blood), #e08a8a);
+    background: linear-gradient(90deg, var(--neon-monster), #ff8a5c);
     border-radius: 4px;
     transition: width 0.4s ease;
+    box-shadow: 0 0 8px var(--neon-monster-glow);
   }
 
   /* ── Main game area ── */
@@ -133,51 +163,117 @@
   }
 
   .slot-label {
-    font-size: 0.6rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-sub);
+    letter-spacing: 0.14em;
+    color: var(--neon-shield);
+    text-shadow: 0 0 6px rgba(45,226,255,0.35);
     text-align: center;
     margin-bottom: 3px;
   }
 
-  /* ── Card visuals ── */
+  /* ── Card visuals (Neo-Future Edition) ── */
   .card {
     position: relative;
     border-radius: 10px;
-    background: linear-gradient(160deg, #ece0c4, #d8caa4);
-    color: #2a2016;
+    background:
+      linear-gradient(160deg, rgba(24,26,40,0.95), rgba(8,9,16,0.97));
+    color: var(--text);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 4px;
     cursor: pointer;
-    border: 2px solid rgba(0,0,0,0.25);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border: 1.5px solid rgba(255,255,255,0.14);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.55);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
   }
-  .card:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 12px 24px rgba(0,0,0,0.5); }
+  .card:hover { transform: translateY(-4px) scale(1.03); }
   .card:active { transform: translateY(-1px) scale(0.98); }
 
-  .card .rank { font-weight: 800; letter-spacing: -0.02em; font-family: 'Cinzel', serif, -apple-system; }
-  .card .suit { line-height: 1; }
-  .card .type-label { font-size: 0.55em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.75; margin-top: 2px; }
+  /* HUD corner brackets */
+  .card::before, .card::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    border: 2px solid var(--neon, rgba(255,255,255,0.4));
+    opacity: 0.85;
+    pointer-events: none;
+  }
+  .card::before { top: 5px; left: 5px; border-right: none; border-bottom: none; }
+  .card::after  { bottom: 5px; right: 5px; border-left: none; border-top: none; }
 
-  .card.monster { background: linear-gradient(160deg, #3a2a2a, #241717); color: #f0d8d8; border-color: rgba(178,58,58,0.6); }
-  .card.weapon  { background: linear-gradient(160deg, #2a3040, #1a2028); color: #cfe0f5; border-color: rgba(56,189,248,0.5); }
-  .card.shield  { background: linear-gradient(160deg, #263528, #17211a); color: #cfe8d8; border-color: rgba(52,211,153,0.5); }
-  .card.potion  { background: linear-gradient(160deg, #3a2440, #241728); color: #ecd8f5; border-color: rgba(167,139,250,0.5); }
-  .card.gold    { background: linear-gradient(160deg, var(--gold-bright), var(--gold)); color: #2a2016; border-color: rgba(0,0,0,0.3); }
+  .card .rank {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    text-shadow: 0 0 6px rgba(255,255,255,0.3);
+  }
+  .card .suit { line-height: 1; filter: drop-shadow(0 0 6px var(--neon, transparent)); }
+  .card .type-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.62em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--neon, var(--text-sub));
+    text-shadow: 0 0 6px var(--neon-glow, transparent);
+    margin-top: 2px;
+  }
+
+  .card.monster {
+    --neon: var(--neon-monster);
+    --neon-glow: var(--neon-monster-glow);
+    border-color: rgba(255,46,108,0.55);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.55), 0 0 16px var(--neon-monster-glow), inset 0 0 20px rgba(255,46,108,0.06);
+  }
+  .card.weapon {
+    --neon: var(--neon-weapon);
+    --neon-glow: var(--neon-weapon-glow);
+    border-color: rgba(255,95,46,0.55);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.55), 0 0 16px var(--neon-weapon-glow), inset 0 0 20px rgba(255,95,46,0.06);
+  }
+  .card.shield {
+    --neon: var(--neon-shield);
+    --neon-glow: var(--neon-shield-glow);
+    border-color: rgba(45,226,255,0.55);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.55), 0 0 16px var(--neon-shield-glow), inset 0 0 20px rgba(45,226,255,0.06);
+  }
+  .card.potion {
+    --neon: var(--neon-potion);
+    --neon-glow: var(--neon-potion-glow);
+    border-color: rgba(57,255,136,0.55);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.55), 0 0 16px var(--neon-potion-glow), inset 0 0 20px rgba(57,255,136,0.06);
+  }
+  .card.gold {
+    --neon: var(--neon-gold);
+    --neon-glow: var(--neon-gold-glow);
+    border-color: rgba(255,214,10,0.55);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.55), 0 0 16px var(--neon-gold-glow), inset 0 0 20px rgba(255,214,10,0.06);
+  }
+
+  .card.monster:hover { box-shadow: 0 12px 26px rgba(0,0,0,0.6), 0 0 26px var(--neon-monster-glow); }
+  .card.weapon:hover  { box-shadow: 0 12px 26px rgba(0,0,0,0.6), 0 0 26px var(--neon-weapon-glow); }
+  .card.shield:hover  { box-shadow: 0 12px 26px rgba(0,0,0,0.6), 0 0 26px var(--neon-shield-glow); }
+  .card.potion:hover  { box-shadow: 0 12px 26px rgba(0,0,0,0.6), 0 0 26px var(--neon-potion-glow); }
+  .card.gold:hover    { box-shadow: 0 12px 26px rgba(0,0,0,0.6), 0 0 26px var(--neon-gold-glow); }
 
   .card.empty {
-    background: rgba(255,255,255,0.03);
-    border: 2px dashed rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.02);
+    border: 1.5px dashed rgba(255,255,255,0.14);
     cursor: default;
     color: var(--text-sub);
     font-size: 0.7rem;
+    box-shadow: none;
   }
+  .card.empty::before, .card.empty::after { display: none; }
   .card.empty:hover { transform: none; box-shadow: none; }
 
   .card-in {
@@ -208,7 +304,7 @@
     position: fixed;
     inset: 0;
     z-index: 40;
-    background: rgba(0,0,0,0.78);
+    background: rgba(3,3,8,0.85);
     display: none;
     flex-direction: column;
     align-items: center;
@@ -219,13 +315,19 @@
     text-align: center;
   }
   .overlay.show { display: flex; }
-  .overlay-title { font-size: clamp(1.1rem, 4vw, 1.6rem); font-weight: 700; }
+  .overlay-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1rem, 3.6vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 12px rgba(45,226,255,0.4);
+  }
   .overlay-sub { color: var(--text-sub); font-size: 0.85rem; max-width: 320px; }
 
   .modal-box {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
+    background: linear-gradient(160deg, rgba(20,22,34,0.92), rgba(8,9,16,0.95));
+    border: 1px solid rgba(45,226,255,0.25);
+    border-radius: 14px;
     padding: 24px;
     backdrop-filter: blur(24px);
     display: flex;
@@ -233,23 +335,31 @@
     gap: 12px;
     max-width: 320px;
     width: 100%;
+    box-shadow: 0 0 30px rgba(45,226,255,0.12), 0 10px 40px rgba(0,0,0,0.6);
   }
 
   .btn {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.16);
-    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 8px;
     padding: 12px 16px;
     color: var(--text);
-    font-size: 0.9rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
     font-weight: 600;
+    letter-spacing: 0.01em;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
     width: 100%;
   }
-  .btn:hover { background: rgba(255,255,255,0.16); }
-  .btn.primary { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: #2a2016; border: none; }
-  .btn.primary:hover { opacity: 0.9; }
+  .btn:hover { background: rgba(45,226,255,0.1); border-color: rgba(45,226,255,0.4); box-shadow: 0 0 12px rgba(45,226,255,0.2); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--neon-gold), #ff8a00);
+    color: #1a1200;
+    border: none;
+    box-shadow: 0 0 16px var(--neon-gold-glow);
+  }
+  .btn.primary:hover { opacity: 0.9; box-shadow: 0 0 22px var(--neon-gold-glow); }
 
   /* ── Mobile: field 2x2, side slots below ── */
   @media (max-width: 640px) {
@@ -263,7 +373,7 @@
 <a class="back" href="../../index.html">← 홈으로</a>
 
 <div class="page">
-  <h1>🗡️ 던전 카드 크롤</h1>
+  <h1>⚔️ 던전 카드 크롤 · NEO-FUTURE</h1>
 
   <div class="stats-bar">
     <div class="stat-box hp-box">
@@ -278,7 +388,7 @@
       <span class="stat-value" id="gold-value">0</span>
     </div>
     <div class="stat-box">
-      <span class="stat-icon">🂠</span>
+      <span class="stat-icon">💾</span>
       <span class="stat-value" id="deck-value">52</span>
     </div>
   </div>
@@ -308,7 +418,7 @@
 <!-- Start overlay -->
 <div class="overlay show" id="overlay-start">
   <div class="modal-box">
-    <div class="overlay-title">🗡️ 던전 카드 크롤</div>
+    <div class="overlay-title">⚔️ 던전 카드 크롤<br><span style="font-size:0.6em; color:var(--neon-shield); letter-spacing:0.15em;">NEO-FUTURE EDITION</span></div>
     <div class="overlay-sub">체력 13으로 시작해 던전 카드를 모두 헤쳐나가세요. 몬스터, 무기, 방패, 물약, 골드가 뒤섞인 카드를 클릭해 하나씩 처리합니다.</div>
     <button class="btn primary" onclick="startGame()">모험 시작</button>
   </div>
@@ -417,7 +527,7 @@ function openMonsterModal(idx, card) {
   const box = document.getElementById('monster-modal-box');
   const opts = [];
 
-  opts.push(`<div class="overlay-title" style="font-size:1.1rem">👹 몬스터 (${card.rank}${card.suit}) · 위력 ${card.value}</div>`);
+  opts.push(`<div class="overlay-title" style="font-size:1.1rem">🤖 몬스터 (${card.rank}${card.suit}) · 위력 ${card.value}</div>`);
 
   opts.push(`<button class="btn" onclick="resolveMonster(${idx}, 'bare')">맨몸으로 공격 (체력 -${card.value})</button>`);
 
@@ -455,7 +565,7 @@ function resolveMonster(idx, mode) {
 function openPotionModal(idx, card) {
   const box = document.getElementById('potion-modal-box');
   const opts = [];
-  opts.push(`<div class="overlay-title" style="font-size:1.1rem">🧪 물약 (${card.rank}${card.suit}) · 회복 ${card.value}</div>`);
+  opts.push(`<div class="overlay-title" style="font-size:1.1rem">💉 물약 (${card.rank}${card.suit}) · 회복 ${card.value}</div>`);
   opts.push(`<button class="btn primary" onclick="resolvePotion(${idx}, 'drink')">즉시 마시기 (체력 +${card.value})</button>`);
   if (!state.backpack) {
     opts.push(`<button class="btn" onclick="resolvePotion(${idx}, 'store')">배낭에 보관하기</button>`);
@@ -535,7 +645,7 @@ function renderCard(card, container, onClick) {
   }
   const type = cardType(card);
   container.className = `card ${type} card-in`;
-  const icon = { monster: '👹', weapon: '⚔️', shield: '🛡️', potion: '🧪', gold: '💰' }[type];
+  const icon = { monster: '🤖', weapon: '🔫', shield: '🛡️', potion: '💉', gold: '🪙' }[type];
   const label = { monster: '몬스터', weapon: '무기', shield: '방패', potion: '물약', gold: '골드' }[type];
   container.innerHTML = `
     <div class="rank" style="font-size:1.3em">${card.rank}${card.suit}</div>
