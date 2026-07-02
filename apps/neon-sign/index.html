@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>네온사인 메이커</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Monoton&family=Dancing+Script:wght@700&family=Rajdhani:wght@500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --text-sub: rgba(240,240,245,0.55);
+    --neon: #ff2e9a;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: 'Rajdhani', -apple-system, "SF Pro Display", system-ui, sans-serif;
+    color: var(--text);
+    background-color: #0a0a12;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 15%, rgba(123,47,255,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 85% 85%, rgba(0,198,255,0.16) 0%, transparent 55%);
+    overflow: hidden;
+  }
+
+  .back {
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 30;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    text-decoration: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 7px 13px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    transition: color 0.2s, background 0.2s;
+  }
+  .back:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+  .page {
+    width: 100%; height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 54px 12px 12px;
+  }
+
+  h1 {
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+
+  /* ── Sign stage ── */
+  .stage {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: radial-gradient(ellipse 80% 70% at 50% 50%, rgba(255,255,255,0.03), transparent 70%), rgba(0,0,0,0.35);
+    border: 1px solid var(--glass-border);
+    overflow: hidden;
+    padding: 20px;
+  }
+
+  #neon-text {
+    color: var(--neon);
+    text-align: center;
+    line-height: 1.2;
+    word-break: keep-all;
+    max-width: 100%;
+    filter: drop-shadow(0 0 1px rgba(255,255,255,0.8));
+    text-shadow:
+      0 0 7px rgba(255,255,255,0.9),
+      0 0 12px var(--neon),
+      0 0 22px var(--neon),
+      0 0 40px var(--neon),
+      0 0 70px var(--neon);
+    transition: color 0.25s ease, font-family 0.15s ease;
+  }
+
+  #neon-text.flicker {
+    animation: neonFlicker 2.6s infinite;
+  }
+
+  @keyframes neonFlicker {
+    0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+    20%, 24%, 55% { opacity: 0.35; }
+    21% { opacity: 0.85; }
+  }
+
+  #neon-text:empty::before {
+    content: attr(data-placeholder);
+    opacity: 0.35;
+  }
+
+  /* ── Controls panel ── */
+  .controls {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .control-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  #text-input {
+    flex: 1;
+    min-width: 180px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    outline: none;
+  }
+  #text-input:focus { border-color: var(--neon); }
+
+  .swatch {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.25);
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+  .swatch:hover { transform: scale(1.15); }
+  .swatch.active { border-color: #fff; transform: scale(1.15); }
+
+  .font-btn, .toggle-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 7px 14px;
+    color: var(--text-sub);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .font-btn.active, .toggle-btn.active {
+    color: var(--text);
+    border-color: var(--neon);
+    background: rgba(255,255,255,0.08);
+  }
+  .font-btn:hover, .toggle-btn:hover { background: rgba(255,255,255,0.1); }
+
+  .size-slider {
+    width: 140px;
+    accent-color: var(--neon);
+  }
+
+  .dl-btn {
+    background: linear-gradient(135deg, var(--neon), #ff7ac2);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 22px;
+    color: #1a0210;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+  .dl-btn:hover { opacity: 0.9; transform: scale(1.03); }
+
+  .control-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-sub);
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+<a class="back" href="../../index.html">← 홈으로</a>
+
+<div class="page">
+  <h1>💡 네온사인 메이커</h1>
+
+  <div class="stage">
+    <div id="neon-text" data-placeholder="OPEN" style="font-family:'Monoton',cursive; font-size:min(14vw,80px);"></div>
+  </div>
+
+  <div class="controls">
+    <div class="control-row">
+      <input id="text-input" type="text" placeholder="문구를 입력하세요 (예: OPEN)" maxlength="24">
+    </div>
+
+    <div class="control-row">
+      <span class="control-label">색상</span>
+      <div class="swatch active" style="background:#ff2e9a" data-color="#ff2e9a"></div>
+      <div class="swatch" style="background:#2de2ff" data-color="#2de2ff"></div>
+      <div class="swatch" style="background:#ffe93a" data-color="#ffe93a"></div>
+      <div class="swatch" style="background:#39ff88" data-color="#39ff88"></div>
+      <div class="swatch" style="background:#b34dff" data-color="#b34dff"></div>
+      <div class="swatch" style="background:#ffffff" data-color="#ffffff"></div>
+    </div>
+
+    <div class="control-row">
+      <span class="control-label">폰트</span>
+      <button class="font-btn active" data-font="'Monoton',cursive">튜브</button>
+      <button class="font-btn" data-font="'Dancing Script',cursive">필기체</button>
+      <button class="font-btn" data-font="'Rajdhani',sans-serif">고딕</button>
+
+      <span class="control-label" style="margin-left:10px">크기</span>
+      <input id="size-slider" class="size-slider" type="range" min="24" max="120" value="60">
+
+      <button class="toggle-btn active" id="flicker-toggle">✨ 깜빡임</button>
+    </div>
+
+    <div class="control-row">
+      <button class="dl-btn" id="download-btn">⬇ PNG 다운로드</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const neonText = document.getElementById('neon-text');
+const textInput = document.getElementById('text-input');
+const sizeSlider = document.getElementById('size-slider');
+const flickerToggle = document.getElementById('flicker-toggle');
+const downloadBtn = document.getElementById('download-btn');
+
+let state = {
+  text: '',
+  color: '#ff2e9a',
+  font: "'Monoton',cursive",
+  size: 60,
+  flicker: true,
+};
+
+function render() {
+  neonText.textContent = state.text;
+  neonText.style.setProperty('--neon', state.color);
+  document.documentElement.style.setProperty('--neon', state.color);
+  neonText.style.color = state.color;
+  neonText.style.fontFamily = state.font;
+  neonText.style.fontSize = state.size + 'px';
+  neonText.classList.toggle('flicker', state.flicker);
+}
+
+textInput.addEventListener('input', () => {
+  state.text = textInput.value;
+  render();
+});
+
+document.querySelectorAll('.swatch').forEach(sw => {
+  sw.addEventListener('click', () => {
+    document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+    sw.classList.add('active');
+    state.color = sw.dataset.color;
+    render();
+  });
+});
+
+document.querySelectorAll('.font-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.font = btn.dataset.font;
+    render();
+  });
+});
+
+sizeSlider.addEventListener('input', () => {
+  state.size = parseInt(sizeSlider.value, 10);
+  render();
+});
+
+flickerToggle.addEventListener('click', () => {
+  state.flicker = !state.flicker;
+  flickerToggle.classList.toggle('active', state.flicker);
+  render();
+});
+
+/* ── Responsive stage sizing ── */
+function calcLayout() {
+  const stage = document.querySelector('.stage');
+  const maxFont = Math.min(stage.clientWidth, stage.clientHeight) * 0.35;
+  sizeSlider.max = Math.max(40, Math.floor(maxFont));
+  if (state.size > sizeSlider.max) {
+    state.size = sizeSlider.max;
+    sizeSlider.value = state.size;
+    render();
+  }
+}
+window.addEventListener('resize', () => setTimeout(calcLayout, 80));
+
+/* ── PNG download via canvas ── */
+downloadBtn.addEventListener('click', () => {
+  const text = state.text || neonText.dataset.placeholder;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const fontSize = Math.max(state.size, 60);
+  const fontSpec = `${fontSize}px ${state.font}`;
+
+  ctx.font = fontSpec;
+  const metrics = ctx.measureText(text);
+  const padding = fontSize * 1.2;
+  canvas.width = Math.ceil(metrics.width + padding * 2);
+  canvas.height = Math.ceil(fontSize * 2 + padding);
+
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.font = fontSpec;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // layered glow passes, mimicking the CSS text-shadow stack
+  const glowLayers = [
+    { blur: 40, alpha: 0.5 },
+    { blur: 25, alpha: 0.6 },
+    { blur: 14, alpha: 0.8 },
+    { blur: 6,  alpha: 1.0 },
+  ];
+  glowLayers.forEach(layer => {
+    ctx.shadowColor = state.color;
+    ctx.shadowBlur = layer.blur;
+    ctx.fillStyle = state.color;
+    ctx.globalAlpha = layer.alpha;
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+  });
+
+  // crisp white-hot core
+  ctx.shadowBlur = 4;
+  ctx.shadowColor = '#fff';
+  ctx.fillStyle = '#fff';
+  ctx.globalAlpha = 0.85;
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+  ctx.globalAlpha = 1;
+
+  const link = document.createElement('a');
+  link.download = 'neon-sign.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+});
+
+render();
+calcLayout();
+</script>
+</body>
+</html>

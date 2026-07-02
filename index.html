@@ -145,6 +145,10 @@
   .card:nth-child(2) { animation-delay: 0.22s; }
   .card:nth-child(3) { animation-delay: 0.34s; }
   .card:nth-child(4) { animation-delay: 0.46s; }
+  .card:nth-child(5) { animation-delay: 0.58s; }
+  .card:nth-child(6) { animation-delay: 0.70s; }
+  .card:nth-child(7) { animation-delay: 0.82s; }
+  .card:nth-child(8) { animation-delay: 0.94s; }
 
   @keyframes cardIn {
     from { opacity: 0; transform: translateY(30px) scale(0.97); }
@@ -212,6 +216,10 @@
   .card[data-color="blue"]   { --glow: rgba(0,198,255,0.3); }
   .card[data-color="mint"]   { --glow: rgba(0,255,198,0.3); }
   .card[data-color="gold"]   { --glow: rgba(201,162,39,0.3); }
+  .card[data-color="pink"]   { --glow: rgba(255,46,154,0.3); }
+  .card[data-color="cyan"]   { --glow: rgba(45,226,255,0.3); }
+  .card[data-color="orange"] { --glow: rgba(255,140,0,0.3); }
+  .card[data-color="amber"]  { --glow: rgba(201,162,39,0.3); }
 
   .card:hover {
     box-shadow:
@@ -263,6 +271,34 @@
       <div class="card-icon">🗡️</div>
       <div class="card-title">던전 카드 크롤</div>
       <div class="card-desc">체력을 지키며 던전을 끝까지 클리어하는 1인용 카드 게임.</div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a class="card" href="apps/neon-sign/index.html" data-color="pink">
+      <div class="card-icon">💡</div>
+      <div class="card-title">네온사인 메이커</div>
+      <div class="card-desc">문구를 입력하면 실시간으로 빛나는 네온사인으로 변환해드려요.</div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a class="card" href="apps/qr-generator/index.html" data-color="cyan">
+      <div class="card-icon">🔳</div>
+      <div class="card-title">QR코드 생성기</div>
+      <div class="card-desc">텍스트나 URL을 입력하면 즉시 QR코드를 만들어 다운로드할 수 있어요.</div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a class="card" href="apps/2048/index.html" data-color="orange">
+      <div class="card-icon">🔢</div>
+      <div class="card-title">2048</div>
+      <div class="card-desc">같은 숫자 타일을 합쳐 2048을 만드는 클래식 퍼즐 게임.</div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a class="card" href="apps/dice-chronicle/index.html" data-color="amber">
+      <div class="card-icon">🎲</div>
+      <div class="card-title">주사위 연대기</div>
+      <div class="card-desc">왕실 서기관이 되어 주사위를 기록하는 중세풍 1인용 Roll & Write 게임.</div>
       <div class="card-arrow">→</div>
     </a>
   </section>

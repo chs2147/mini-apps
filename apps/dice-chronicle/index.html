@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>주사위 연대기</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Cinzel+Decorative:wght@700;900&family=Noto+Serif+KR:wght@400;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --parchment: #ece0c4;
+    --parchment-dim: #cbbf9d;
+    --ink: #2a2016;
+    --wood: #3d2817;
+    --wood-dark: #241708;
+    --gold: #c9a227;
+    --gold-bright: #e8c86b;
+
+    --c-yellow: #d4a017;
+    --c-yellow-dark: #8a6810;
+    --c-blue: #3b6ea5;
+    --c-blue-dark: #23445e;
+    --c-green: #4c7a3a;
+    --c-green-dark: #2e4a23;
+    --c-orange: #c15a2c;
+    --c-orange-dark: #7a3a1b;
+    --c-purple: #6b3fa0;
+    --c-purple-dark: #422864;
+    --c-white: #e8e2cf;
+    --c-white-dark: #a89f84;
+  }
+
+  html, body {
+    min-height: 100vh;
+    font-family: 'Noto Serif KR', serif;
+    color: var(--parchment);
+    line-height: 1.6;
+    background-color: #14100c;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(201,162,39,0.10), transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(107,63,160,0.12), transparent 50%);
+  }
+
+  .back {
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 30;
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--parchment-dim);
+    text-decoration: none;
+    background: rgba(20,16,12,0.75);
+    border: 1px solid rgba(201,162,39,0.3);
+    padding: 7px 13px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    transition: color 0.2s, background 0.2s;
+  }
+  .back:hover { color: var(--parchment); background: rgba(201,162,39,0.14); }
+
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 64px 16px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  header { text-align: center; }
+  h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.5rem, 5vw, 2.3rem);
+    color: var(--gold-bright);
+    text-shadow: 0 0 18px rgba(201,162,39,0.35), 0 2px 0 #000;
+    letter-spacing: 1px;
+  }
+  .subtitle { margin-top: 8px; color: var(--parchment-dim); font-size: 0.9rem; }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+  .stat-box {
+    background: rgba(61,40,23,0.55);
+    border: 1px solid rgba(201,162,39,0.3);
+    border-radius: 10px;
+    padding: 8px 16px;
+    text-align: center;
+    min-width: 84px;
+  }
+  .stat-label { font-family: 'Cinzel', serif; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--parchment-dim); }
+  .stat-value { font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 700; color: var(--gold-bright); }
+
+  .end-round-btn {
+    background: rgba(61,40,23,0.7);
+    border: 1px solid rgba(201,162,39,0.35);
+    border-radius: 10px;
+    padding: 8px 16px;
+    color: var(--parchment);
+    font-family: 'Cinzel', serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .end-round-btn:hover { background: rgba(201,162,39,0.18); }
+
+  /* ── Dice tray ── */
+  .dice-tray {
+    background: radial-gradient(ellipse at 50% 30%, rgba(201,162,39,0.06), transparent 70%), rgba(0,0,0,0.3);
+    border: 2px solid var(--wood);
+    border-radius: 16px;
+    padding: 24px 16px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .die {
+    width: 58px; height: 58px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    cursor: pointer;
+    position: relative;
+    border: 2px solid rgba(0,0,0,0.35);
+    box-shadow: 0 6px 0 rgba(0,0,0,0.35), 0 8px 14px rgba(0,0,0,0.4);
+    transition: transform 0.12s ease;
+    user-select: none;
+    perspective: 300px;
+  }
+  .die:active { transform: translateY(2px); }
+  .die.sidelined {
+    opacity: 0.3;
+    cursor: default;
+    filter: grayscale(0.6);
+    box-shadow: none;
+    transform: translateY(4px) scale(0.92);
+  }
+  .die.used { display: none; }
+
+  .die[data-color="yellow"] { background: linear-gradient(160deg, var(--c-yellow), var(--c-yellow-dark)); color: #2a1e02; }
+  .die[data-color="blue"]   { background: linear-gradient(160deg, var(--c-blue), var(--c-blue-dark)); color: #eaf3ff; }
+  .die[data-color="green"]  { background: linear-gradient(160deg, var(--c-green), var(--c-green-dark)); color: #eafbe4; }
+  .die[data-color="orange"] { background: linear-gradient(160deg, var(--c-orange), var(--c-orange-dark)); color: #fff3ea; }
+  .die[data-color="purple"] { background: linear-gradient(160deg, var(--c-purple), var(--c-purple-dark)); color: #f6ecff; }
+  .die[data-color="white"]  { background: linear-gradient(160deg, var(--c-white), var(--c-white-dark)); color: #2a2016; }
+
+  .die-label {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Noto Serif KR', serif;
+    font-size: 0.6rem;
+    color: var(--parchment-dim);
+    white-space: nowrap;
+  }
+
+  @keyframes diceTumble {
+    0%   { transform: rotate3d(1,1,0,0deg) scale(1); }
+    25%  { transform: rotate3d(1,0.5,0.3,180deg) scale(1.08); }
+    50%  { transform: rotate3d(0.3,1,0.6,360deg) scale(0.95); }
+    75%  { transform: rotate3d(0.7,0.3,1,540deg) scale(1.08); }
+    100% { transform: rotate3d(1,1,0,720deg) scale(1); }
+  }
+  .die.rolling { animation: diceTumble 0.55s cubic-bezier(0.34,1.2,0.64,1); }
+
+  @keyframes diceSettle {
+    0%   { transform: scale(1.35); }
+    60%  { transform: scale(0.9); }
+    100% { transform: scale(1); }
+  }
+  .die.settle { animation: diceSettle 0.22s ease-out; }
+
+  .flow-hint {
+    text-align: center;
+    color: var(--parchment-dim);
+    font-size: 0.85rem;
+    min-height: 1.4em;
+  }
+
+  /* ── Sheets grid ── */
+  .sheets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    width: 100%;
+  }
+
+  .sheet {
+    border-radius: 14px;
+    padding: 18px 20px;
+    background: linear-gradient(160deg, rgba(61,40,23,0.55), rgba(20,16,12,0.6));
+    border: 1px solid rgba(201,162,39,0.22);
+  }
+  .sheet h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+  }
+  .sheet .sheet-score { font-family: 'Cinzel', serif; font-weight: 700; color: var(--gold-bright); float: right; }
+  .sheet .sheet-desc { font-size: 0.72rem; color: var(--parchment-dim); margin-bottom: 12px; }
+
+  .sheet.yellow h3 { color: var(--c-yellow); }
+  .sheet.blue h3   { color: #7ab2ec; }
+  .sheet.green h3  { color: #8fce77; }
+  .sheet.orange h3 { color: #ef936a; }
+  .sheet.purple h3 { color: #bd8ce8; }
+
+  /* Yellow 4x4 grid */
+  .yellow-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .ycell {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(212,160,23,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 1rem;
+    color: var(--parchment-dim);
+  }
+  .ycell.checked { background: linear-gradient(160deg, var(--c-yellow), var(--c-yellow-dark)); color: #2a1e02; border-color: var(--c-yellow); }
+  .ycell.line-complete { box-shadow: 0 0 10px rgba(212,160,23,0.6); }
+
+  /* Blue track */
+  .track-row { display: flex; gap: 5px; flex-wrap: wrap; }
+  .tbox {
+    width: 26px; height: 26px;
+    border-radius: 5px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(59,110,165,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.68rem;
+    color: var(--parchment-dim);
+    font-family: 'Cinzel', serif;
+  }
+  .tbox.checked { background: linear-gradient(160deg, var(--c-blue), var(--c-blue-dark)); color: #eaf3ff; border-color: var(--c-blue); }
+
+  /* Green / Orange / Purple sequential boxes */
+  .seq-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sbox {
+    width: 42px; height: 42px;
+    border-radius: 7px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.95rem;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.25);
+    color: var(--parchment-dim);
+    position: relative;
+  }
+  .sbox .sub { font-size: 0.5rem; font-weight: 400; opacity: 0.8; }
+  .sbox.filled.green  { background: linear-gradient(160deg, var(--c-green), var(--c-green-dark)); color: #eafbe4; border-color: var(--c-green); }
+  .sbox.filled.orange { background: linear-gradient(160deg, var(--c-orange), var(--c-orange-dark)); color: #fff3ea; border-color: var(--c-orange); }
+  .sbox.filled.purple { background: linear-gradient(160deg, var(--c-purple), var(--c-purple-dark)); color: #f6ecff; border-color: var(--c-purple); }
+  .sbox.next-target { box-shadow: 0 0 0 2px var(--gold-bright); }
+
+  /* ── Overlays ── */
+  .overlay {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(10,7,4,0.85);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(6px);
+  }
+  .overlay.show { display: flex; }
+  .modal-box {
+    background: linear-gradient(180deg, #2a1f14, #1a130c);
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    padding: 26px 28px;
+    max-width: 400px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    max-height: 86vh;
+    overflow-y: auto;
+  }
+  .modal-title { font-family: 'Cinzel', serif; font-size: 1.2rem; color: var(--gold-bright); text-align: center; }
+  .modal-sub { font-size: 0.85rem; color: var(--parchment-dim); text-align: center; }
+
+  .btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(201,162,39,0.35);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--parchment);
+    font-family: 'Noto Serif KR', serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+  .btn:hover:not(:disabled) { background: rgba(201,162,39,0.16); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn.primary { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: #2a1e02; border: none; }
+  .btn.primary:hover:not(:disabled) { opacity: 0.9; }
+
+  .mini-grid-picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .mini-cell {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700;
+    color: var(--parchment-dim);
+    cursor: default;
+  }
+  .mini-cell.pickable { cursor: pointer; border-color: var(--gold-bright); color: var(--gold-bright); }
+  .mini-cell.pickable:hover { background: rgba(201,162,39,0.2); }
+  .mini-cell.checked { background: linear-gradient(160deg, var(--c-yellow), var(--c-yellow-dark)); color: #2a1e02; }
+
+  .final-score-table { width: 100%; font-size: 0.88rem; }
+  .final-score-table td { padding: 4px 0; }
+  .final-score-table td:last-child { text-align: right; font-family: 'Cinzel', serif; font-weight: 700; color: var(--gold-bright); }
+  .final-score-table tr.total td { border-top: 1px solid rgba(201,162,39,0.4); padding-top: 8px; font-size: 1.05rem; }
+
+  @media (max-width: 640px) {
+    .die { width: 48px; height: 48px; font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<a class="back" href="../../index.html">← 홈으로</a>
+
+<div class="page">
+  <header>
+    <h1>🎲 주사위 연대기</h1>
+    <p class="subtitle">왕실 서기관이 되어 운명의 주사위를 기록하라</p>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat-box">
+      <div class="stat-label">라운드</div>
+      <div class="stat-value" id="round-value">1 / 6</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">이번 라운드 선택</div>
+      <div class="stat-value" id="picks-value">0 / 3</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">🦊 여우</div>
+      <div class="stat-value" id="fox-value">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">총점</div>
+      <div class="stat-value" id="total-value">0</div>
+    </div>
+    <button class="end-round-btn" id="end-round-btn" onclick="forceEndRound()">라운드 종료</button>
+  </div>
+
+  <div class="dice-tray" id="dice-tray"></div>
+  <p class="flow-hint" id="flow-hint">주사위를 클릭해 기록할 영역을 선택하세요.</p>
+
+  <div class="sheets-grid">
+    <div class="sheet yellow">
+      <h3>🟡 황금 문장 <span class="sheet-score" id="score-yellow">0</span></h3>
+      <p class="sheet-desc">아무 칸이나 값이 일치하면 체크 · 가로·세로·대각선 완성 시 점수 + 여우</p>
+      <div class="yellow-grid" id="yellow-grid"></div>
+    </div>
+
+    <div class="sheet blue">
+      <h3>🔵 푸른 강물 <span class="sheet-score" id="score-blue">0</span></h3>
+      <p class="sheet-desc">항상 흰 주사위와 합산 · 체크할수록 점수 상승</p>
+      <div class="track-row" id="blue-track"></div>
+    </div>
+
+    <div class="sheet green">
+      <h3>🟢 성벽 축조 <span class="sheet-score" id="score-green">0</span></h3>
+      <p class="sheet-desc">이전 칸 값 이상만 진행 가능 · 마지막 칸 점수만 인정</p>
+      <div class="seq-row" id="green-track"></div>
+    </div>
+
+    <div class="sheet orange">
+      <h3>🟠 대장간 주조 <span class="sheet-score" id="score-orange">0</span></h3>
+      <p class="sheet-desc">순서대로 기록 · ×2·×3 칸은 배수 적용, 합산 점수</p>
+      <div class="seq-row" id="orange-track"></div>
+    </div>
+
+    <div class="sheet purple">
+      <h3>🟣 마법의 탑 <span class="sheet-score" id="score-purple">0</span></h3>
+      <p class="sheet-desc">반드시 이전보다 큰 값 (6 다음은 예외) · 합산 점수</p>
+      <div class="seq-row" id="purple-track"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Start overlay -->
+<div class="overlay show" id="overlay-start">
+  <div class="modal-box">
+    <div class="modal-title">🎲 주사위 연대기</div>
+    <div class="modal-sub">
+      매 라운드 주사위 6개를 굴려 원하는 주사위 1개를 골라 기록하세요.<br><br>
+      <b>선택한 주사위보다 눈이 낮은 주사위는 이번 라운드에 쓸 수 없게 됩니다.</b><br>
+      남은 주사위를 다시 굴려 라운드당 최대 3개까지 기록할 수 있어요.<br><br>
+      6라운드 후 6개 영역 점수와 여우 보너스를 합산해 최종 점수를 겨룹니다.
+    </div>
+    <button class="btn primary" onclick="startGame()">기록 시작</button>
+  </div>
+</div>
+
+<!-- Die action overlay -->
+<div class="overlay" id="overlay-die">
+  <div class="modal-box" id="die-modal-box"></div>
+</div>
+
+<!-- End game overlay -->
+<div class="overlay" id="overlay-end">
+  <div class="modal-box" id="end-modal-box"></div>
+</div>
+
+<script>
+const COLORS = ['yellow','blue','green','orange','purple','white'];
+const COLOR_NAMES = { yellow:'황금 문장', blue:'푸른 강물', green:'성벽 축조', orange:'대장간 주조', purple:'마법의 탑', white:'만능 서기' };
+const LINE_VALUES = [2,3,4,5,6,8,10,12,15,20];
+const BLUE_VALUES = [1,1,2,2,3,3,4,4,5,5,6];
+const GREEN_SCORES = [1,2,4,6,9,12];
+const ORANGE_MULT = [1,1,1,2,2,3];
+
+let dice, sidelined, used, round, picksThisRound, sheets, fox, gameOver;
+
+function newGame() {
+  round = 1;
+  fox = 0;
+  gameOver = false;
+  sheets = {
+    yellow: buildYellowGrid(),
+    blue: { checked: new Set() },
+    green: { boxes: [null,null,null,null,null,null] },
+    orange: { boxes: [null,null,null,null,null,null] },
+    purple: { boxes: [null,null,null,null,null,null] },
+  };
+  renderSheets();
+  startRound();
+}
+
+function buildYellowGrid() {
+  const pool = [];
+  for (let n = 1; n <= 6; n++) { pool.push(n, n, n); }
+  while (pool.length > 16) pool.splice(Math.floor(Math.random() * pool.length), 1);
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return { cells: pool.map(n => ({ value: n, checked: false })), completedLines: 0 };
+}
+
+function startRound() {
+  document.getElementById('round-value').textContent = `${round} / 6`;
+  picksThisRound = 0;
+  document.getElementById('picks-value').textContent = `0 / 3`;
+  sidelined = [false,false,false,false,false,false];
+  used = [false,false,false,false,false,false];
+  dice = [0,0,0,0,0,0];
+  setHint('주사위를 굴리는 중...');
+  renderDice(true);
+  rollActiveDice(() => {
+    setHint('주사위를 클릭해 기록할 영역을 선택하세요.');
+  });
+}
+
+function rollActiveDice(onDone) {
+  const tray = document.getElementById('dice-tray');
+  let stepsLeft = 8;
+  const iv = setInterval(() => {
+    for (let i = 0; i < 6; i++) {
+      if (used[i] || sidelined[i]) continue;
+      dice[i] = 1 + Math.floor(Math.random() * 6);
+      const el = tray.children[i];
+      if (el) { el.querySelector('.face').textContent = dice[i]; el.classList.add('rolling'); }
+    }
+    stepsLeft--;
+    if (stepsLeft <= 0) {
+      clearInterval(iv);
+      for (let i = 0; i < 6; i++) {
+        const el = tray.children[i];
+        if (el && !used[i] && !sidelined[i]) {
+          el.classList.remove('rolling');
+          el.classList.add('settle');
+          setTimeout(() => el.classList.remove('settle'), 250);
+        }
+      }
+      renderDice();
+      if (onDone) onDone();
+    }
+  }, 65);
+}
+
+function renderDice(skipInteractive) {
+  const tray = document.getElementById('dice-tray');
+  tray.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const die = document.createElement('div');
+    die.className = 'die' + (used[i] ? ' used' : '') + (sidelined[i] ? ' sidelined' : '');
+    die.dataset.color = COLORS[i];
+    die.innerHTML = `<span class="face">${dice[i] || ''}</span><span class="die-label">${COLOR_NAMES[COLORS[i]]}</span>`;
+    if (!used[i] && !sidelined[i] && !skipInteractive) {
+      die.addEventListener('click', () => openDieModal(i));
+    }
+    tray.appendChild(die);
+  }
+}
+
+function setHint(text) { document.getElementById('flow-hint').textContent = text; }
+
+/* ── Die action modal ── */
+function openDieModal(i) {
+  if (gameOver) return;
+  const color = COLORS[i];
+  const value = dice[i];
+  const box = document.getElementById('die-modal-box');
+  let html = `<div class="modal-title">${COLOR_NAMES[color]} · 눈 ${value}</div>`;
+
+  if (color === 'yellow') html += yellowPickerHTML(i, value);
+  else if (color === 'green') html += simpleAreaHTML(i, value, 'green');
+  else if (color === 'orange') html += simpleAreaHTML(i, value, 'orange');
+  else if (color === 'purple') html += simpleAreaHTML(i, value, 'purple');
+  else if (color === 'blue') html += blueAreaHTML(i, value);
+  else if (color === 'white') html += whiteChoiceHTML(i, value);
+
+  html += `<button class="btn" onclick="closeDieModal()">취소</button>`;
+  box.innerHTML = html;
+  showOverlay('overlay-die');
+}
+function closeDieModal() { hideOverlay('overlay-die'); }
+
+function yellowPickerHTML(dieIndex, value, forcedValue) {
+  const v = forcedValue || value;
+  const grid = sheets.yellow.cells;
+  let cellsHtml = '';
+  grid.forEach((cell, idx) => {
+    const pickable = !cell.checked && cell.value === v;
+    cellsHtml += `<div class="mini-cell ${cell.checked ? 'checked' : ''} ${pickable ? 'pickable' : ''}"
+      ${pickable ? `onclick="placeDie({primary:${dieIndex}, area:'yellow', cellIndex:${idx}})"` : ''}>${cell.value}</div>`;
+  });
+  const anyPickable = grid.some(c => !c.checked && c.value === v);
+  return `<div class="modal-sub">${anyPickable ? '값이 일치하는 빈 칸을 선택하세요.' : '일치하는 빈 칸이 없습니다.'}</div>
+    <div class="mini-grid-picker">${cellsHtml}</div>`;
+}
+
+function nextOpenIndex(area) {
+  return sheets[area].boxes.findIndex(v => v === null);
+}
+
+function simpleAreaHTML(dieIndex, value, area, forcedValue) {
+  const v = forcedValue !== undefined ? forcedValue : value;
+  const idx = nextOpenIndex(area);
+  if (idx === -1) return `<div class="modal-sub">이미 모든 칸을 채웠습니다.</div>`;
+  let valid = true, reason = '';
+  if (area === 'green') {
+    const prevIdx = idx - 1;
+    if (prevIdx >= 0) {
+      const prevVal = sheets.green.boxes[prevIdx];
+      if (v < prevVal) { valid = false; reason = `이전 값(${prevVal}) 이상이어야 합니다.`; }
+    }
+  } else if (area === 'purple') {
+    const prevIdx = idx - 1;
+    if (prevIdx >= 0) {
+      const prevVal = sheets.purple.boxes[prevIdx];
+      if (prevVal !== 6 && v <= prevVal) { valid = false; reason = `이전 값(${prevVal})보다 커야 합니다. (6 다음은 예외)`; }
+    }
+  }
+  const preview = area === 'orange' ? `${v} × ${ORANGE_MULT[idx]} = ${v * ORANGE_MULT[idx]}점` : `${v}을(를) 기록`;
+  return `<div class="modal-sub">${valid ? preview : reason}</div>
+    <button class="btn primary" ${valid ? '' : 'disabled'} onclick="placeDie({primary:${dieIndex}, area:'${area}', forcedValue:${v}})">기록하기</button>`
+    .replace('${dieIndex}', dieIndex).replace("'${area}'", `'${area}'`).replace('${v}', v);
+}
+
+function blueAreaHTML(dieIndex, value) {
+  const whiteIdx = 5;
+  if (used[whiteIdx] || sidelined[whiteIdx]) {
+    return `<div class="modal-sub">흰 주사위를 더 이상 사용할 수 없어 강물에 기록할 수 없습니다.</div>`;
+  }
+  const sum = value + dice[whiteIdx];
+  const already = sheets.blue.checked.has(sum);
+  const nextPts = BLUE_VALUES[Math.min(sheets.blue.checked.size, BLUE_VALUES.length - 1)];
+  return `<div class="modal-sub">${dice[whiteIdx]} + ${value} = <b>${sum}</b>${already ? ' (이미 체크됨, 사용 불가)' : ` · +${nextPts}점`}</div>
+    <button class="btn primary" ${already ? 'disabled' : ''} onclick='placeDie({primary:${dieIndex}, secondary:${whiteIdx}, area:"blue", sum:${sum}})'>기록하기</button>`;
+}
+
+function whiteChoiceHTML(dieIndex, value) {
+  let html = `<div class="modal-sub">흰 주사위는 어떤 영역에 사용할까요?</div>`;
+  html += `<button class="btn" onclick="openWhiteAs(${dieIndex}, 'yellow')">🟡 황금 문장 (값 ${value})</button>`;
+  html += `<button class="btn" onclick="openWhiteAs(${dieIndex}, 'green')">🟢 성벽 축조 (값 ${value})</button>`;
+  html += `<button class="btn" onclick="openWhiteAs(${dieIndex}, 'orange')">🟠 대장간 주조 (값 ${value})</button>`;
+  html += `<button class="btn" onclick="openWhiteAs(${dieIndex}, 'purple')">🟣 마법의 탑 (값 ${value})</button>`;
+  const blueIdx = 1;
+  if (!used[blueIdx] && !sidelined[blueIdx]) {
+    html += `<button class="btn" onclick="openWhiteAs(${dieIndex}, 'blue')">🔵 푸른 강물 (${value} + ${dice[blueIdx]} = ${value + dice[blueIdx]})</button>`;
+  }
+  return html;
+}
+
+function openWhiteAs(dieIndex, area) {
+  const value = dice[dieIndex];
+  const box = document.getElementById('die-modal-box');
+  let html = `<div class="modal-title">만능 서기 · ${COLOR_NAMES[area]}로 사용 (값 ${value})</div>`;
+  if (area === 'yellow') html += yellowPickerHTML(dieIndex, value);
+  else if (area === 'blue') {
+    const blueIdx = 1;
+    const sum = value + dice[blueIdx];
+    const already = sheets.blue.checked.has(sum);
+    const nextPts = BLUE_VALUES[Math.min(sheets.blue.checked.size, BLUE_VALUES.length - 1)];
+    html += `<div class="modal-sub">${value} + ${dice[blueIdx]} = <b>${sum}</b>${already ? ' (이미 체크됨, 사용 불가)' : ` · +${nextPts}점`}</div>
+      <button class="btn primary" ${already ? 'disabled' : ''} onclick='placeDie({primary:${dieIndex}, secondary:${blueIdx}, area:"blue", sum:${sum}})'>기록하기</button>`;
+  } else {
+    html += simpleAreaHTML(dieIndex, value, area, value);
+  }
+  html += `<button class="btn" onclick="closeDieModal()">취소</button>`;
+  box.innerHTML = html;
+}
+
+/* ── Placement ── */
+function placeDie({ primary, secondary, area, cellIndex, forcedValue, sum }) {
+  let fox_gained = 0;
+
+  if (area === 'yellow') {
+    sheets.yellow.cells[cellIndex].checked = true;
+    fox_gained += checkYellowLines();
+  } else if (area === 'blue') {
+    sheets.blue.checked.add(sum);
+  } else if (area === 'green' || area === 'orange' || area === 'purple') {
+    const idx = nextOpenIndex(area);
+    sheets[area].boxes[idx] = forcedValue;
+    if (idx === 5) fox_gained += 1;
+  }
+
+  fox += fox_gained;
+
+  const threshold = dice[primary];
+  used[primary] = true;
+  if (secondary !== undefined) used[secondary] = true;
+  for (let i = 0; i < 6; i++) {
+    if (!used[i] && !sidelined[i] && dice[i] < threshold) sidelined[i] = true;
+  }
+
+  closeDieModal();
+  renderSheets();
+  renderDice();
+  picksThisRound++;
+  document.getElementById('picks-value').textContent = `${picksThisRound} / 3`;
+
+  if (fox_gained > 0) setHint(`🦊 보너스! 여우를 ${fox_gained}개 획득했습니다.`);
+
+  advanceFlow();
+}
+
+function checkYellowLines() {
+  const cells = sheets.yellow.cells;
+  const lines = [];
+  for (let r = 0; r < 4; r++) lines.push([r*4, r*4+1, r*4+2, r*4+3]);
+  for (let c = 0; c < 4; c++) lines.push([c, c+4, c+8, c+12]);
+  lines.push([0,5,10,15]);
+  lines.push([3,6,9,12]);
+
+  let newlyCompleted = 0;
+  lines.forEach(line => {
+    const complete = line.every(i => cells[i].checked);
+    if (complete && !line._counted) {
+      // mark using a WeakSet-like approach via cell flags
+    }
+  });
+
+  // recompute total completed lines fresh each time (idempotent, avoids double count via stored completedLines)
+  let completedNow = 0;
+  lines.forEach(line => { if (line.every(i => cells[i].checked)) completedNow++; });
+  const prevCompleted = sheets.yellow.completedLines;
+  if (completedNow > prevCompleted) {
+    newlyCompleted = completedNow - prevCompleted;
+    sheets.yellow.completedLines = completedNow;
+  }
+  return newlyCompleted;
+}
+
+/* ── Flow control ── */
+function advanceFlow() {
+  if (picksThisRound >= 3) {
+    setTimeout(endRound, 700);
+    return;
+  }
+  const activeIndices = [0,1,2,3,4,5].filter(i => !used[i] && !sidelined[i]);
+  if (activeIndices.length === 0) {
+    setHint('더 이상 사용할 수 있는 주사위가 없습니다. 라운드를 종료합니다.');
+    setTimeout(endRound, 900);
+    return;
+  }
+  setTimeout(() => {
+    setHint('남은 주사위를 다시 굴리는 중...');
+    rollActiveDice(() => {
+      if (hasAnyValidMove()) {
+        setHint('주사위를 클릭해 기록할 영역을 선택하세요.');
+      } else {
+        setHint('기록할 수 있는 곳이 없습니다. 라운드를 종료합니다.');
+        setTimeout(endRound, 900);
+      }
+    });
+  }, 500);
+}
+
+function hasAnyValidMove() {
+  for (let i = 0; i < 6; i++) {
+    if (used[i] || sidelined[i]) continue;
+    const color = COLORS[i];
+    const v = dice[i];
+    if (color === 'yellow' && sheets.yellow.cells.some(c => !c.checked && c.value === v)) return true;
+    if (color === 'green' && canPlaceSequential('green', v)) return true;
+    if (color === 'orange' && nextOpenIndex('orange') !== -1) return true;
+    if (color === 'purple' && canPlaceSequential('purple', v)) return true;
+    if (color === 'blue' && !used[5] && !sidelined[5] && !sheets.blue.checked.has(v + dice[5])) return true;
+    if (color === 'white') {
+      if (sheets.yellow.cells.some(c => !c.checked && c.value === v)) return true;
+      if (canPlaceSequential('green', v)) return true;
+      if (nextOpenIndex('orange') !== -1) return true;
+      if (canPlaceSequential('purple', v)) return true;
+      if (!used[1] && !sidelined[1] && !sheets.blue.checked.has(v + dice[1])) return true;
+    }
+  }
+  return false;
+}
+
+function canPlaceSequential(area, v) {
+  const idx = nextOpenIndex(area);
+  if (idx === -1) return false;
+  if (idx === 0) return true;
+  const prev = sheets[area].boxes[idx - 1];
+  if (area === 'green') return v >= prev;
+  if (area === 'purple') return prev === 6 || v > prev;
+  return true;
+}
+
+function forceEndRound() {
+  if (gameOver) return;
+  endRound();
+}
+
+function endRound() {
+  if (round >= 6) {
+    endGame();
+  } else {
+    round++;
+    startRound();
+  }
+}
+
+/* ── Rendering ── */
+function renderSheets() {
+  // yellow
+  const yg = document.getElementById('yellow-grid');
+  yg.innerHTML = '';
+  sheets.yellow.cells.forEach(cell => {
+    const el = document.createElement('div');
+    el.className = 'ycell' + (cell.checked ? ' checked' : '');
+    el.textContent = cell.value;
+    yg.appendChild(el);
+  });
+  document.getElementById('score-yellow').textContent = scoreYellow();
+
+  // blue
+  const bt = document.getElementById('blue-track');
+  bt.innerHTML = '';
+  for (let n = 2; n <= 12; n++) {
+    const el = document.createElement('div');
+    el.className = 'tbox' + (sheets.blue.checked.has(n) ? ' checked' : '');
+    el.textContent = n;
+    bt.appendChild(el);
+  }
+  document.getElementById('score-blue').textContent = scoreBlue();
+
+  renderSeq('green', GREEN_SCORES.map((s,i) => ({ sub: `+${s}` })));
+  renderSeq('orange', ORANGE_MULT.map(m => ({ sub: m > 1 ? `×${m}` : '' })));
+  renderSeq('purple', [0,0,0,0,0,0].map(() => ({ sub: '' })));
+
+  document.getElementById('score-green').textContent = scoreGreen();
+  document.getElementById('score-orange').textContent = scoreOrange();
+  document.getElementById('score-purple').textContent = scorePurple();
+
+  document.getElementById('fox-value').textContent = fox;
+  document.getElementById('total-value').textContent = computeTotal();
+}
+
+function renderSeq(area, metas) {
+  const el = document.getElementById(`${area}-track`);
+  el.innerHTML = '';
+  const nextIdx = nextOpenIndex(area);
+  sheets[area].boxes.forEach((val, idx) => {
+    const box = document.createElement('div');
+    box.className = 'sbox' + (val !== null ? ` filled ${area}` : '') + (idx === nextIdx ? ' next-target' : '');
+    box.innerHTML = `${val !== null ? val : '&nbsp;'}<span class="sub">${metas[idx].sub}</span>`;
+    el.appendChild(box);
+  });
+}
+
+function scoreYellow() {
+  let total = 0;
+  for (let i = 0; i < sheets.yellow.completedLines; i++) total += LINE_VALUES[i] || 0;
+  return total;
+}
+function scoreBlue() {
+  let total = 0;
+  for (let i = 0; i < sheets.blue.checked.size; i++) total += BLUE_VALUES[i] || 0;
+  return total;
+}
+function scoreGreen() {
+  const idx = sheets.green.boxes.filter(v => v !== null).length - 1;
+  return idx >= 0 ? GREEN_SCORES[idx] : 0;
+}
+function scoreOrange() {
+  return sheets.orange.boxes.reduce((sum, v, i) => sum + (v !== null ? v * ORANGE_MULT[i] : 0), 0);
+}
+function scorePurple() {
+  return sheets.purple.boxes.reduce((sum, v) => sum + (v !== null ? v : 0), 0);
+}
+function computeTotal() {
+  const scores = [scoreYellow(), scoreBlue(), scoreGreen(), scoreOrange(), scorePurple()];
+  const minScore = Math.min(...scores);
+  const foxBonus = fox * minScore;
+  return scores.reduce((a,b) => a+b, 0) + foxBonus;
+}
+
+/* ── End game ── */
+function endGame() {
+  gameOver = true;
+  const y = scoreYellow(), b = scoreBlue(), g = scoreGreen(), o = scoreOrange(), p = scorePurple();
+  const minScore = Math.min(y,b,g,o,p);
+  const foxBonus = fox * minScore;
+  const total = y+b+g+o+p+foxBonus;
+
+  const best = parseInt(localStorage.getItem('dice-chronicle-best') || '0', 10);
+  const isNewBest = total > best;
+  if (isNewBest) localStorage.setItem('dice-chronicle-best', String(total));
+
+  const box = document.getElementById('end-modal-box');
+  box.innerHTML = `
+    <div class="modal-title">📜 연대기 완성</div>
+    <table class="final-score-table">
+      <tr><td>🟡 황금 문장</td><td>${y}</td></tr>
+      <tr><td>🔵 푸른 강물</td><td>${b}</td></tr>
+      <tr><td>🟢 성벽 축조</td><td>${g}</td></tr>
+      <tr><td>🟠 대장간 주조</td><td>${o}</td></tr>
+      <tr><td>🟣 마법의 탑</td><td>${p}</td></tr>
+      <tr><td>🦊 여우 보너스 (${fox} × ${minScore})</td><td>${foxBonus}</td></tr>
+      <tr class="total"><td>총점</td><td>${total}</td></tr>
+    </table>
+    <div class="modal-sub">${isNewBest ? '🏆 새로운 최고 기록입니다!' : `최고 기록: ${best}점`}</div>
+    <button class="btn primary" onclick="restartGame()">새 연대기 시작</button>
+  `;
+  showOverlay('overlay-end');
+}
+
+function restartGame() {
+  hideOverlay('overlay-end');
+  newGame();
+}
+
+function startGame() {
+  hideOverlay('overlay-start');
+  newGame();
+}
+
+function showOverlay(id) { document.getElementById(id).classList.add('show'); }
+function hideOverlay(id) { document.getElementById(id).classList.remove('show'); }
+</script>
+</body>
+</html>
