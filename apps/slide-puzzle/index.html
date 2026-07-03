@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>슬라이딩 넘버 퍼즐</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --text-sub: rgba(240,240,245,0.55);
+    --accent: #ff6384;
+    --accent2: #a78bfa;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    color: var(--text);
+    background-color: #0d0d1a;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 15%, rgba(255,99,132,0.16) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 85% 85%, rgba(123,47,255,0.18) 0%, transparent 55%);
+    overflow: hidden;
+  }
+
+  .back {
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 30;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    text-decoration: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 7px 13px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    transition: color 0.2s, background 0.2s;
+  }
+  .back:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+  .page {
+    width: 100%; height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 54px 12px 12px;
+  }
+
+  h1 {
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 55%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    flex-shrink: 0;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .stat-box {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 8px 16px;
+    text-align: center;
+    min-width: 76px;
+  }
+  .stat-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-sub); }
+  .stat-value { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+  .new-game-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 9px 16px;
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .new-game-btn:hover { background: rgba(255,255,255,0.14); }
+
+  /* ── Board ── */
+  .board-wrap {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  #board {
+    position: relative;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 8px;
+  }
+
+  .cell-bg {
+    position: absolute;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+  }
+
+  .tile {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-weight: 800;
+    color: #fff;
+    cursor: pointer;
+    background: linear-gradient(160deg, var(--accent2), var(--accent));
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    transition: top 0.13s ease, left 0.13s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tile:hover { filter: brightness(1.12); }
+
+  .controls-hint {
+    font-size: 0.68rem;
+    color: var(--text-sub);
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Overlays ── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(3,3,8,0.82);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    backdrop-filter: blur(6px);
+    padding: 20px;
+    text-align: center;
+  }
+  .overlay.show { display: flex; }
+  .overlay-title { font-size: clamp(1.1rem, 4vw, 1.6rem); font-weight: 800; }
+  .overlay-sub { color: var(--text-sub); font-size: 0.88rem; }
+
+  .modal-box {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 26px;
+    backdrop-filter: blur(24px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 340px;
+    width: 100%;
+  }
+
+  .size-picker {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .size-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 10px 6px;
+    color: var(--text-sub);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .size-btn.active { color: var(--text); border-color: var(--accent); background: rgba(255,99,132,0.14); }
+  .size-btn:hover { background: rgba(255,255,255,0.1); }
+
+  .btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+  .btn:hover { background: rgba(255,255,255,0.16); }
+  .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #1a0210; border: none; }
+  .btn.primary:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<a class="back" href="../../index.html">← 홈으로</a>
+
+<div class="page">
+  <h1>🧩 슬라이딩 넘버 퍼즐</h1>
+
+  <div class="stats-bar">
+    <div class="stat-box">
+      <div class="stat-label">크기</div>
+      <div class="stat-value" id="size-value">5×5</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">이동</div>
+      <div class="stat-value" id="moves-value">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">시간</div>
+      <div class="stat-value" id="time-value">00:00</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">최고 이동</div>
+      <div class="stat-value" id="best-value">-</div>
+    </div>
+    <button class="new-game-btn" onclick="showStartOverlay()">새 게임</button>
+  </div>
+
+  <div class="board-wrap">
+    <div id="board"></div>
+  </div>
+
+  <div class="controls-hint">방향키 또는 클릭/스와이프로 빈칸 옆 타일을 이동하세요</div>
+</div>
+
+<div class="overlay show" id="overlay-start">
+  <div class="modal-box">
+    <div class="overlay-title">🧩 슬라이딩 넘버 퍼즐</div>
+    <div class="overlay-sub">숫자를 1부터 순서대로 정렬하세요. 게임 시작 전 격자 크기를 선택할 수 있어요.</div>
+    <div class="size-picker" id="size-picker"></div>
+    <button class="btn primary" onclick="startGame()">시작하기</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-win">
+  <div class="modal-box">
+    <div class="overlay-title">🎉 퍼즐 완성!</div>
+    <div class="overlay-sub" id="win-sub"></div>
+    <button class="btn primary" onclick="showStartOverlay()">새 게임</button>
+  </div>
+</div>
+
+<script>
+const MIN_SIZE = 3, MAX_SIZE = 8, DEFAULT_SIZE = 5;
+let size = DEFAULT_SIZE;
+let board = [];       // board[row][col] = tile number (0 = empty)
+let emptyPos = { r: 0, c: 0 };
+let moves = 0;
+let startTime = null;
+let timerInterval = null;
+let playing = false;
+let cellSize = 60, gap = 6;
+
+function showOverlay(id) { document.getElementById(id).classList.add('show'); }
+function hideOverlay(id) { document.getElementById(id).classList.remove('show'); }
+
+/* ── Size picker ── */
+function buildSizePicker() {
+  const picker = document.getElementById('size-picker');
+  picker.innerHTML = '';
+  for (let n = MIN_SIZE; n <= MAX_SIZE; n++) {
+    const btn = document.createElement('button');
+    btn.className = 'size-btn' + (n === size ? ' active' : '');
+    btn.textContent = `${n}×${n}`;
+    btn.onclick = () => {
+      size = n;
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    picker.appendChild(btn);
+  }
+}
+
+function showStartOverlay() {
+  stopTimer();
+  playing = false;
+  buildSizePicker();
+  hideOverlay('overlay-win');
+  showOverlay('overlay-start');
+}
+
+/* ── Game setup ── */
+function startGame() {
+  hideOverlay('overlay-start');
+  document.getElementById('size-value').textContent = `${size}×${size}`;
+  document.getElementById('best-value').textContent = bestForSize(size) ?? '-';
+  buildSolvedBoard();
+  shuffleBoard();
+  moves = 0;
+  document.getElementById('moves-value').textContent = '0';
+  startTimer();
+  playing = true;
+  calcLayout();
+  render();
+}
+
+function buildSolvedBoard() {
+  board = [];
+  let n = 1;
+  for (let r = 0; r < size; r++) {
+    const row = [];
+    for (let c = 0; c < size; c++) {
+      if (r === size - 1 && c === size - 1) row.push(0);
+      else row.push(n++);
+    }
+    board.push(row);
+  }
+  emptyPos = { r: size - 1, c: size - 1 };
+}
+
+function shuffleBoard() {
+  // Perform random valid slides from the solved state to guarantee solvability.
+  const shuffleMoves = size * size * 40;
+  let lastDir = null;
+  for (let i = 0; i < shuffleMoves; i++) {
+    const dirs = validDirectionsFromEmpty();
+    const filtered = dirs.filter(d => d !== oppositeDir(lastDir));
+    const pick = (filtered.length ? filtered : dirs)[Math.floor(Math.random() * (filtered.length ? filtered.length : dirs.length))];
+    slideDirection(pick, false);
+    lastDir = pick;
+  }
+}
+
+function oppositeDir(d) {
+  return { up: 'down', down: 'up', left: 'right', right: 'left' }[d] || null;
+}
+
+/* directions describe which neighboring tile moves INTO the empty cell */
+function validDirectionsFromEmpty() {
+  const { r, c } = emptyPos;
+  const dirs = [];
+  if (r > 0) dirs.push('up');          // tile above moves down into empty
+  if (r < size - 1) dirs.push('down'); // tile below moves up into empty
+  if (c > 0) dirs.push('left');        // tile to the left moves right into empty
+  if (c < size - 1) dirs.push('right');// tile to the right moves left into empty
+  return dirs;
+}
+
+function slideDirection(dir, countMove = true) {
+  const { r, c } = emptyPos;
+  let tr = r, tc = c;
+  if (dir === 'up') tr = r - 1;
+  else if (dir === 'down') tr = r + 1;
+  else if (dir === 'left') tc = c - 1;
+  else if (dir === 'right') tc = c + 1;
+  if (tr < 0 || tr >= size || tc < 0 || tc >= size) return false;
+
+  board[r][c] = board[tr][tc];
+  board[tr][tc] = 0;
+  emptyPos = { r: tr, c: tc };
+  if (countMove) {
+    moves++;
+    document.getElementById('moves-value').textContent = moves;
+  }
+  return true;
+}
+
+/* ── Tile click / keyboard / swipe ── */
+function tryMoveTile(r, c) {
+  if (!playing) return;
+  const { r: er, c: ec } = emptyPos;
+  if (r === er && c === ec) return;
+  if (r === er && Math.abs(c - ec) === 1) {
+    slideDirection(c < ec ? 'left' : 'right');
+  } else if (c === ec && Math.abs(r - er) === 1) {
+    slideDirection(r < er ? 'up' : 'down');
+  } else {
+    return;
+  }
+  render();
+  checkWin();
+}
+
+document.addEventListener('keydown', e => {
+  if (!playing) return;
+  const { r, c } = emptyPos;
+  let moved = false;
+  if (e.key === 'ArrowUp' && r < size - 1) { e.preventDefault(); slideDirection('down'); moved = true; }
+  else if (e.key === 'ArrowDown' && r > 0) { e.preventDefault(); slideDirection('up'); moved = true; }
+  else if (e.key === 'ArrowLeft' && c < size - 1) { e.preventDefault(); slideDirection('right'); moved = true; }
+  else if (e.key === 'ArrowRight' && c > 0) { e.preventDefault(); slideDirection('left'); moved = true; }
+  if (moved) { render(); checkWin(); }
+});
+
+let touchStartX, touchStartY;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (!playing) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+  const { r, c } = emptyPos;
+  let moved = false;
+  if (Math.abs(dx) > Math.abs(dy)) {
+    if (dx > 0 && c > 0) { slideDirection('left'); moved = true; }       // swipe right -> tile left of empty moves right
+    else if (dx < 0 && c < size - 1) { slideDirection('right'); moved = true; }
+  } else {
+    if (dy > 0 && r > 0) { slideDirection('up'); moved = true; }
+    else if (dy < 0 && r < size - 1) { slideDirection('down'); moved = true; }
+  }
+  if (moved) { render(); checkWin(); }
+}, { passive: true });
+
+/* ── Win check ── */
+function checkWin() {
+  let n = 1;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (r === size - 1 && c === size - 1) {
+        if (board[r][c] !== 0) return;
+      } else {
+        if (board[r][c] !== n++) return;
+      }
+    }
+  }
+  playing = false;
+  stopTimer();
+  const elapsed = formatTime(Date.now() - startTime);
+  const prevBest = bestForSize(size);
+  const isNewBest = prevBest === null || moves < prevBest;
+  if (isNewBest) localStorage.setItem(`slide-puzzle-best-${size}`, String(moves));
+  document.getElementById('win-sub').innerHTML =
+    `이동 횟수 <b>${moves}</b> · 시간 <b>${elapsed}</b><br>${isNewBest ? '🏆 새로운 최고 기록입니다!' : `최고 기록: ${prevBest}회`}`;
+  showOverlay('overlay-win');
+}
+
+function bestForSize(n) {
+  const v = localStorage.getItem(`slide-puzzle-best-${n}`);
+  return v === null ? null : parseInt(v, 10);
+}
+
+/* ── Timer ── */
+function startTimer() {
+  stopTimer();
+  startTime = Date.now();
+  document.getElementById('time-value').textContent = '00:00';
+  timerInterval = setInterval(() => {
+    document.getElementById('time-value').textContent = formatTime(Date.now() - startTime);
+  }, 1000);
+}
+function stopTimer() { if (timerInterval) clearInterval(timerInterval); timerInterval = null; }
+function formatTime(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+  const s = String(totalSec % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+/* ── Rendering ── */
+function render() {
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '';
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const bg = document.createElement('div');
+      bg.className = 'cell-bg';
+      positionEl(bg, r, c);
+      boardEl.appendChild(bg);
+    }
+  }
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const val = board[r][c];
+      if (val === 0) continue;
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.textContent = val;
+      tile.style.fontSize = Math.max(14, cellSize * 0.36) + 'px';
+      positionEl(tile, r, c);
+      tile.addEventListener('click', () => tryMoveTile(r, c));
+      boardEl.appendChild(tile);
+    }
+  }
+}
+
+function positionEl(el, r, c) {
+  el.style.width = cellSize + 'px';
+  el.style.height = cellSize + 'px';
+  el.style.left = (c * (cellSize + gap)) + 'px';
+  el.style.top = (r * (cellSize + gap)) + 'px';
+}
+
+/* ── Responsive layout ── */
+function calcLayout() {
+  const h1El = document.querySelector('h1');
+  const statsEl = document.querySelector('.stats-bar');
+  const hintEl = document.querySelector('.controls-hint');
+  const pageEl = document.querySelector('.page');
+  const pageStyle = getComputedStyle(pageEl);
+  const padTop = parseFloat(pageStyle.paddingTop);
+  const padBottom = parseFloat(pageStyle.paddingBottom);
+  const gapPx = parseFloat(pageStyle.gap) || 10;
+
+  const vh = window.innerHeight, vw = window.innerWidth;
+  const chromeH = padTop + padBottom + h1El.offsetHeight + statsEl.offsetHeight + hintEl.offsetHeight + gapPx * 3;
+  const availH = Math.max(120, vh - chromeH);
+  const availW = vw * 0.94;
+
+  const boardPad = 16; // 8px padding each side
+  gap = Math.max(3, Math.min(8, 60 / size));
+  const cellByH = (availH - boardPad - gap * (size - 1)) / size;
+  const cellByW = (availW - boardPad - gap * (size - 1)) / size;
+  cellSize = Math.max(20, Math.min(cellByH, cellByW));
+
+  const boardEl = document.getElementById('board');
+  const totalSize = cellSize * size + gap * (size - 1) + boardPad;
+  boardEl.style.width = totalSize + 'px';
+  boardEl.style.height = totalSize + 'px';
+
+  if (board.length) render();
+}
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(calcLayout, 80);
+});
+
+/* ── Init ── */
+buildSizePicker();
+calcLayout();
+</script>
+</body>
+</html>

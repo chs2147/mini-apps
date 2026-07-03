@@ -18,6 +18,7 @@
 | 🔳 [QR코드 생성기](apps/qr-generator/index.html) | 텍스트/URL을 오프라인에서 즉시 QR코드로 변환, PNG 다운로드 |
 | 🔢 [2048](apps/2048/index.html) | 같은 숫자 타일을 합쳐 2048을 만드는 클래식 퍼즐 게임 |
 | 🎲 [주사위 연대기](apps/dice-chronicle/index.html) | 중세풍 1인용 Roll & Write 게임. 주사위를 굴려 6개 영역을 채우고 여우 보너스까지 노려보세요 |
+| 🧩 [슬라이딩 넘버 퍼즐](apps/slide-puzzle/index.html) | 숫자를 순서대로 정렬하는 클래식 퍼즐. 3×3~8×8 크기 선택, 이동 횟수·시간 기록 |
 
 ---
 
@@ -41,7 +42,9 @@ mini-apps/
     │   └── index.html
     ├── 2048/
     │   └── index.html
-    └── dice-chronicle/
+    ├── dice-chronicle/
+    │   └── index.html
+    └── slide-puzzle/
         └── index.html
 ```
 
