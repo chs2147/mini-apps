@@ -198,6 +198,15 @@
   }
   .tc-btn:active { background: rgba(255,255,255,0.18); }
 
+  /* ── Board column: title stays centered directly above the canvas ── */
+  .board-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    flex-shrink: 0;
+  }
+
   /* ── Overlay ── */
   .canvas-wrap { position: relative; flex-shrink: 0; }
 
@@ -222,15 +231,16 @@
 <a class="back" href="../../index.html">← 홈으로</a>
 
 <div class="page">
-  <h1>🎮 기괴한 테트리스</h1>
-
   <div class="game-wrap" id="game-wrap">
-    <div class="canvas-wrap" id="canvas-wrap">
-      <canvas id="board"></canvas>
-      <div class="overlay" id="overlay">
-        <div class="overlay-title">🎮 기괴한 테트리스</div>
-        <div class="overlay-sub">블록을 믿지 마세요</div>
-        <button class="btn" onclick="startGame()" style="width:130px;margin-top:4px">시작하기</button>
+    <div class="board-column">
+      <h1>🎮 기괴한 테트리스</h1>
+      <div class="canvas-wrap" id="canvas-wrap">
+        <canvas id="board"></canvas>
+        <div class="overlay" id="overlay">
+          <div class="overlay-title">🎮 기괴한 테트리스</div>
+          <div class="overlay-sub">블록을 믿지 마세요</div>
+          <button class="btn" onclick="startGame()" style="width:130px;margin-top:4px">시작하기</button>
+        </div>
       </div>
     </div>
 
@@ -284,9 +294,9 @@ function calcLayout() {
   const vh = window.innerHeight;
 
   // usable area (80% of viewport, minus header/title/controls space)
-  const titleH   = document.querySelector('h1').offsetHeight + 12;
+  const titleH   = document.querySelector('h1').offsetHeight + 18;
   const touchH   = window.matchMedia('(pointer: coarse)').matches ? 64 : 0;
-  const padV      = 56 + 12 + 12; // top pad + gaps
+  const padV      = 56 + 12; // top pad + game-wrap-to-touch-controls gap
   const usableH   = vh * 0.88 - padV - titleH - touchH;
   const usableW   = vw * 0.88;
 

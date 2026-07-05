@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mini Apps — 작고 재미있는 앱들의 세계</title>
-<meta name="description" content="MBTI 테스트, 테트리스, 포모도로 타이머, 카드 게임, 네온사인 메이커, QR코드 생성기 등 순수 HTML/CSS/JS로 만든 미니 앱 9종 모음.">
+<meta name="description" content="MBTI 테스트, 테트리스, 포모도로 타이머, 카드 게임, 네온사인 메이커, QR코드 생성기 등 순수 HTML/CSS/JS로 만든 미니 앱 모음.">
 <meta name="theme-color" content="#0d0d1a">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" href="icon-512.png">
@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://chs2147.github.io/mini-apps/">
 <meta property="og:title" content="Mini Apps — 작고 재미있는 앱들의 세계">
-<meta property="og:description" content="MBTI 테스트, 테트리스, 포모도로 타이머, 카드 게임, 네온사인 메이커, QR코드 생성기 등 순수 HTML/CSS/JS로 만든 미니 앱 9종 모음.">
+<meta property="og:description" content="MBTI 테스트, 테트리스, 포모도로 타이머, 카드 게임, 네온사인 메이커, QR코드 생성기 등 순수 HTML/CSS/JS로 만든 미니 앱 모음.">
 <meta property="og:image" content="https://chs2147.github.io/mini-apps/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -21,17 +21,13 @@
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Mini Apps — 작고 재미있는 앱들의 세계">
-<meta name="twitter:description" content="MBTI 테스트, 테트리스, 포모도로 타이머, 카드 게임, 네온사인 메이커, QR코드 생성기 등 순수 HTML/CSS/JS로 만든 미니 앱 9종 모음.">
+<meta name="twitter:description" content="MBTI 테스트, 테트리스, 포모도로 타이머, 카드 게임, 네온사인 메이커, QR코드 생성기 등 순수 HTML/CSS/JS로 만든 미니 앱 모음.">
 <meta name="twitter:image" content="https://chs2147.github.io/mini-apps/og-image.png">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
     --c1: #0d0d1a;
-    --c2: #1a0a2e;
-    --accent1: #7b2fff;
-    --accent2: #00c6ff;
-    --accent3: #00ffc6;
     --glass-bg: rgba(255,255,255,0.06);
     --glass-border: rgba(255,255,255,0.12);
     --text: #f0f0f5;
@@ -45,7 +41,6 @@
     overflow-x: hidden;
   }
 
-  /* ── Mesh gradient background ── */
   body {
     background-color: var(--c1);
     background-image:
@@ -64,7 +59,6 @@
     100% { background-position: 0% 20%, 100% 10%, 100% 90%, 0% 80%; }
   }
 
-  /* ── Noise overlay ── */
   body::before {
     content: '';
     position: fixed;
@@ -75,7 +69,6 @@
     z-index: 0;
   }
 
-  /* ── Layout ── */
   .page {
     position: relative;
     z-index: 1;
@@ -83,15 +76,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 60px 24px;
-    gap: 64px;
+    padding: 60px 24px 48px;
+    gap: 46px;
   }
 
-  /* ── Header ── */
-  header {
-    text-align: center;
-  }
+  header { text-align: center; margin-bottom: 4px; }
 
   .eyebrow {
     font-size: 11px;
@@ -103,7 +92,7 @@
   }
 
   h1 {
-    font-size: clamp(2.8rem, 7vw, 5rem);
+    font-size: clamp(2.2rem, 6vw, 4rem);
     font-weight: 700;
     letter-spacing: -0.03em;
     line-height: 1.05;
@@ -121,144 +110,188 @@
   }
 
   .subtitle {
-    margin-top: 16px;
-    font-size: 1.05rem;
+    margin-top: 14px;
+    font-size: 1rem;
     color: var(--text-sub);
     font-weight: 400;
     letter-spacing: -0.01em;
   }
 
-  /* ── Cards grid ── */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 24px;
+  #sections-root {
     width: 100%;
-    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 46px;
   }
 
-  /* ── App card ── */
-  .card {
+  /* ── Section ── */
+  .app-section {
+    width: 100%;
+    max-width: 1120px;
+    min-width: 0;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 0 4px;
+  }
+  .section-header h2 {
+    font-size: 1.2rem;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-header .count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-sub);
+  }
+  .see-more {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: color 0.2s;
+  }
+  .see-more:hover { color: var(--text); }
+
+  /* ── Slider ── */
+  .slider-wrap { position: relative; }
+
+  .slider-track {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-behavior: smooth;
+    padding: 6px 4px 16px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .slider-track::-webkit-scrollbar { display: none; }
+
+  .slider-arrow {
+    position: absolute;
+    top: 46%;
+    transform: translateY(-50%);
+    z-index: 3;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(10,10,20,0.75);
+    border: 1px solid var(--glass-border);
+    color: var(--text);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    font-size: 1rem;
+    transition: background 0.2s;
+  }
+  .slider-arrow.visible { display: flex; }
+  .slider-arrow:hover { background: rgba(255,255,255,0.14); }
+  .slider-arrow.prev { left: -14px; }
+  .slider-arrow.next { right: -14px; }
+
+  /* ── Mini card ── */
+  .mini-card {
     position: relative;
+    flex: 0 0 auto;
+    width: 224px;
+    scroll-snap-align: start;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    border-radius: 24px;
-    padding: 36px 28px;
-    cursor: pointer;
+    border-radius: 18px;
+    padding: 22px 20px;
     text-decoration: none;
     color: inherit;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
-    transform-style: preserve-3d;
-    will-change: transform;
+    gap: 10px;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 
-    /* stagger fade-in */
     opacity: 0;
-    animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+    animation: cardIn 0.6s cubic-bezier(0.22,1,0.36,1) forwards;
   }
-  .card:nth-child(1) { animation-delay: 0.1s; }
-  .card:nth-child(2) { animation-delay: 0.22s; }
-  .card:nth-child(3) { animation-delay: 0.34s; }
-  .card:nth-child(4) { animation-delay: 0.46s; }
-  .card:nth-child(5) { animation-delay: 0.58s; }
-  .card:nth-child(6) { animation-delay: 0.70s; }
-  .card:nth-child(7) { animation-delay: 0.82s; }
-  .card:nth-child(8) { animation-delay: 0.94s; }
-  .card:nth-child(9) { animation-delay: 1.06s; }
-  .card:nth-child(10) { animation-delay: 1.18s; }
-  .card:nth-child(11) { animation-delay: 1.30s; }
-
   @keyframes cardIn {
-    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
     to   { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  .card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 24px;
-    opacity: 0;
-    background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.08) 0%, transparent 65%);
-    transition: opacity 0.3s;
-    pointer-events: none;
-  }
-
-  .card:hover {
+  .mini-card:hover {
+    transform: translateY(-5px);
     border-color: rgba(255,255,255,0.22);
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,0.06),
-      0 20px 60px rgba(0,0,0,0.45),
-      0 0 40px rgba(123,47,255,0.15);
-  }
-  .card:hover::after { opacity: 1; }
-
-  .card-icon {
-    font-size: 2.6rem;
-    line-height: 1;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.42), 0 0 34px var(--glow, rgba(123,47,255,0.25));
   }
 
-  .card-title {
-    font-size: 1.25rem;
-    font-weight: 650;
-    letter-spacing: -0.02em;
-  }
-
-  .card-desc {
-    font-size: 0.875rem;
+  .mini-card .icon { font-size: 2rem; line-height: 1; }
+  .mini-card .title { font-size: 1.02rem; font-weight: 700; letter-spacing: -0.01em; }
+  .mini-card .desc {
+    font-size: 0.78rem;
     color: var(--text-sub);
-    line-height: 1.55;
+    line-height: 1.5;
     flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
-
-  .card-arrow {
+  .mini-card .arrow {
     align-self: flex-end;
-    width: 36px;
-    height: 36px;
+    width: 30px; height: 30px;
     border-radius: 50%;
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.12);
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 0.9rem;
     transition: background 0.2s, transform 0.2s;
-    font-size: 1rem;
   }
-  .card:hover .card-arrow {
-    background: rgba(255,255,255,0.16);
-    transform: translateX(3px);
+  .mini-card:hover .arrow { background: rgba(255,255,255,0.16); transform: translateX(2px); }
+
+  .mini-card .badge {
+    position: absolute;
+    top: 14px; right: 14px;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 10px;
   }
+  .badge.new { background: rgba(52,211,153,0.18); color: #6ee7b7; }
+  .badge.updated { background: rgba(56,189,248,0.18); color: #7dd3fc; }
 
-  /* accent glows per card */
-  .card[data-color="purple"] { --glow: rgba(123,47,255,0.3); }
-  .card[data-color="blue"]   { --glow: rgba(0,198,255,0.3); }
-  .card[data-color="mint"]   { --glow: rgba(0,255,198,0.3); }
-  .card[data-color="gold"]   { --glow: rgba(201,162,39,0.3); }
-  .card[data-color="pink"]   { --glow: rgba(255,46,154,0.3); }
-  .card[data-color="cyan"]   { --glow: rgba(45,226,255,0.3); }
-  .card[data-color="orange"] { --glow: rgba(255,140,0,0.3); }
-  .card[data-color="amber"]  { --glow: rgba(201,162,39,0.3); }
-  .card[data-color="rose"]   { --glow: rgba(255,99,132,0.3); }
-  .card[data-color="indigo"] { --glow: rgba(99,102,241,0.3); }
-  .card[data-color="teal"]   { --glow: rgba(20,184,166,0.3); }
+  /* accent glows per card color */
+  .mini-card[data-color="purple"] { --glow: rgba(123,47,255,0.3); }
+  .mini-card[data-color="blue"]   { --glow: rgba(0,198,255,0.3); }
+  .mini-card[data-color="mint"]   { --glow: rgba(0,255,198,0.3); }
+  .mini-card[data-color="gold"]   { --glow: rgba(201,162,39,0.3); }
+  .mini-card[data-color="pink"]   { --glow: rgba(255,46,154,0.3); }
+  .mini-card[data-color="cyan"]   { --glow: rgba(45,226,255,0.3); }
+  .mini-card[data-color="orange"] { --glow: rgba(255,140,0,0.3); }
+  .mini-card[data-color="amber"]  { --glow: rgba(201,162,39,0.3); }
+  .mini-card[data-color="rose"]   { --glow: rgba(255,99,132,0.3); }
+  .mini-card[data-color="indigo"] { --glow: rgba(99,102,241,0.3); }
+  .mini-card[data-color="teal"]   { --glow: rgba(20,184,166,0.3); }
 
-  .card:hover {
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,0.06),
-      0 24px 64px rgba(0,0,0,0.5),
-      0 0 50px var(--glow, rgba(123,47,255,0.2));
-  }
-
-  /* ── Footer ── */
   footer {
     font-size: 0.78rem;
     color: var(--text-sub);
     opacity: 0.5;
     letter-spacing: 0.04em;
+    margin-top: 8px;
   }
 </style>
 </head>
@@ -270,107 +303,94 @@
     <p class="subtitle">취향대로 골라 즐기는 미니 앱 모음</p>
   </header>
 
-  <section class="grid">
-    <a class="card" href="apps/mbti/index.html" data-color="purple">
-      <div class="card-icon">🧠</div>
-      <div class="card-title">MBTI 테스트</div>
-      <div class="card-desc">나는 어떤 유형일까? 16가지 성격 유형 중 당신의 유형을 찾아보세요.</div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="apps/tetris/index.html" data-color="blue">
-      <div class="card-icon">🎮</div>
-      <div class="card-title">기괴한 테트리스</div>
-      <div class="card-desc">뭔가 잘못된 테트리스. 블록이 제멋대로 굴고 중력도 믿을 수 없어요.</div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="apps/pomodoro/index.html" data-color="mint">
-      <div class="card-icon">🍅</div>
-      <div class="card-title">포모도로 타이머</div>
-      <div class="card-desc">집중과 휴식의 리듬. 25분 집중, 5분 휴식으로 생산성을 높이세요.</div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="apps/card-crawl/index.html" data-color="gold">
-      <div class="card-icon">🗡️</div>
-      <div class="card-title">던전 카드 크롤</div>
-      <div class="card-desc">체력을 지키며 던전을 끝까지 클리어하는 1인용 카드 게임.</div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="apps/neon-sign/index.html" data-color="pink">
-      <div class="card-icon">💡</div>
-      <div class="card-title">네온사인 메이커</div>
-      <div class="card-desc">문구를 입력하면 실시간으로 빛나는 네온사인으로 변환해드려요.</div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="apps/qr-generator/index.html" data-color="cyan">
-      <div class="card-icon">🔳</div>
-      <div class="card-title">QR코드 생성기</div>
-      <div class="card-desc">텍스트나 URL을 입력하면 즉시 QR코드를 만들어 다운로드할 수 있어요.</div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="apps/2048/index.html" data-color="orange">
-      <div class="card-icon">🔢</div>
-      <div class="card-title">2048</div>
-      <div class="card-desc">같은 숫자 타일을 합쳐 2048을 만드는 클래식 퍼즐 게임.</div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="apps/dice-chronicle/index.html" data-color="amber">
-      <div class="card-icon">🎲</div>
-      <div class="card-title">주사위 연대기</div>
-      <div class="card-desc">왕실 서기관이 되어 주사위를 기록하는 중세풍 1인용 Roll & Write 게임.</div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="apps/slide-puzzle/index.html" data-color="rose">
-      <div class="card-icon">🧩</div>
-      <div class="card-title">슬라이딩 넘버 퍼즐</div>
-      <div class="card-desc">숫자를 순서대로 정렬하는 클래식 퍼즐. 3×3부터 8×8까지 크기 선택 가능.</div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="apps/perfect-timing/index.html" data-color="indigo">
-      <div class="card-icon">⏰</div>
-      <div class="card-title">정각 맞추기</div>
-      <div class="card-desc">8시 59분 50초부터 흘러가는 시계를 보며 정확히 9시 정각에 클릭하는 타이밍 게임.</div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="apps/ladder-game/index.html" data-color="teal">
-      <div class="card-icon">🪜</div>
-      <div class="card-title">사다리 타기</div>
-      <div class="card-desc">인원수와 이름을 설정하고 결과를 배정하는 사다리 타기. 1/3/5배속 애니메이션 지원.</div>
-      <div class="card-arrow">→</div>
-    </a>
-  </section>
+  <div id="sections-root"></div>
 
   <footer>Made with pure HTML · CSS · JS</footer>
 </div>
 
+<script src="apps-data.js"></script>
 <script>
-  // 3D tilt on card hover
-  document.querySelectorAll('.card').forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const r = card.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width;
-      const y = (e.clientY - r.top) / r.height;
-      const tiltX = (y - 0.5) * -14;
-      const tiltY = (x - 0.5) * 14;
-      card.style.transform = `perspective(700px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.02)`;
-      card.style.setProperty('--mx', `${x * 100}%`);
-      card.style.setProperty('--my', `${y * 100}%`);
-    });
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
-      card.style.transition = 'transform 0.5s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s ease, border-color 0.3s ease';
-      setTimeout(() => card.style.transition = '', 500);
+function fmtDesc(text, limit) {
+  return text.length > limit ? text.slice(0, limit - 1) + '…' : text;
+}
+
+function renderCard(app, badge) {
+  const badgeHtml = badge ? `<span class="badge ${badge.cls}">${badge.label}</span>` : '';
+  return `
+    <a class="mini-card" href="${app.href}" data-color="${app.color}">
+      ${badgeHtml}
+      <div class="icon">${app.icon}</div>
+      <div class="title">${app.title}</div>
+      <div class="desc">${fmtDesc(app.desc, 60)}</div>
+      <div class="arrow">→</div>
+    </a>`;
+}
+
+function renderSection({ key, title, apps, seeMoreHref, badgeFor }) {
+  if (!apps.length) return '';
+  const cardsHtml = apps.map(app => renderCard(app, badgeFor ? badgeFor(app) : null)).join('');
+  const seeMore = seeMoreHref ? `<a class="see-more" href="${seeMoreHref}">더보기 →</a>` : '';
+  return `
+    <section class="app-section" data-section="${key}">
+      <div class="section-header">
+        <h2>${title} <span class="count">${apps.length}</span></h2>
+        ${seeMore}
+      </div>
+      <div class="slider-wrap">
+        <button class="slider-arrow prev" aria-label="이전" data-target="${key}">‹</button>
+        <div class="slider-track" id="track-${key}">${cardsHtml}</div>
+        <button class="slider-arrow next" aria-label="다음" data-target="${key}">›</button>
+      </div>
+    </section>`;
+}
+
+const featured = [...APPS].sort((a, b) => new Date(b.released) - new Date(a.released)).slice(0, 4);
+const updated = APPS.filter(a => a.updated)
+  .sort((a, b) => new Date(b.updated) - new Date(a.updated))
+  .slice(0, 4);
+
+const sections = [
+  { key: 'featured', title: '✨ Featured', apps: featured, seeMoreHref: null, badgeFor: () => ({ cls: 'new', label: 'NEW' }) },
+  { key: 'updated', title: '🔄 Updated', apps: updated, seeMoreHref: null, badgeFor: () => ({ cls: 'updated', label: 'UPDATED' }) },
+];
+
+CATEGORY_ORDER.forEach(cat => {
+  const meta = CATEGORY_META[cat];
+  const catApps = APPS.filter(a => a.category === cat).sort((a, b) => new Date(a.released) - new Date(b.released));
+  sections.push({
+    key: cat,
+    title: `${meta.icon} ${meta.label}`,
+    apps: catApps.slice(0, 4),
+    seeMoreHref: catApps.length > 4 ? `category.html?cat=${cat}` : null,
+    badgeFor: null,
+  });
+});
+
+document.getElementById('sections-root').innerHTML = sections.map(renderSection).join('');
+
+document.querySelectorAll('.slider-arrow').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const track = document.getElementById(`track-${btn.dataset.target}`);
+    const dir = btn.classList.contains('prev') ? -1 : 1;
+    track.scrollBy({ left: dir * (track.clientWidth * 0.8), behavior: 'smooth' });
+  });
+});
+
+function updateArrowVisibility() {
+  sections.forEach(({ key }) => {
+    const track = document.getElementById(`track-${key}`);
+    if (!track) return;
+    const overflowing = track.scrollWidth > track.clientWidth + 4;
+    track.parentElement.querySelectorAll('.slider-arrow').forEach(btn => {
+      btn.classList.toggle('visible', overflowing);
     });
   });
+}
+updateArrowVisibility();
+window.addEventListener('resize', () => {
+  clearTimeout(window.__arrowResizeTimer);
+  window.__arrowResizeTimer = setTimeout(updateArrowVisibility, 120);
+});
 </script>
 </body>
 </html>

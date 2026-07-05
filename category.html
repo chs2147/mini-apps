@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>카테고리 · Mini Apps</title>
+<meta name="theme-color" content="#0d0d1a">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" href="icon-512.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --c1: #0d0d1a;
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --text-sub: rgba(240,240,245,0.55);
+  }
+
+  html, body {
+    min-height: 100vh;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: var(--c1);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 20%, rgba(123,47,255,0.3) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 80% 10%, rgba(0,198,255,0.2) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 80% at 75% 80%, rgba(0,255,198,0.18) 0%, transparent 60%);
+  }
+
+  .back {
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 30;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    text-decoration: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 7px 13px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    transition: color 0.2s, background 0.2s;
+  }
+  .back:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+  .page {
+    max-width: 1000px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 70px 24px 48px;
+  }
+
+  header { text-align: center; }
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-sub);
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff 0%, #a78bfa 45%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle { margin-top: 10px; color: var(--text-sub); font-size: 0.95rem; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 22px;
+    width: 100%;
+  }
+
+  .card {
+    position: relative;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 30px 24px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    backdrop-filter: blur(20px) saturate(160%);
+    transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    opacity: 0;
+    animation: cardIn 0.6s cubic-bezier(0.22,1,0.36,1) forwards;
+  }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+  .card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255,255,255,0.22);
+    box-shadow: 0 18px 44px rgba(0,0,0,0.42), 0 0 36px var(--glow, rgba(123,47,255,0.25));
+  }
+
+  .card .icon { font-size: 2.2rem; }
+  .card .title { font-size: 1.12rem; font-weight: 700; letter-spacing: -0.01em; }
+  .card .desc { font-size: 0.84rem; color: var(--text-sub); line-height: 1.55; flex: 1; }
+  .card .arrow {
+    align-self: flex-end;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .card:hover .arrow { background: rgba(255,255,255,0.16); transform: translateX(2px); }
+
+  .card[data-color="purple"] { --glow: rgba(123,47,255,0.3); }
+  .card[data-color="blue"]   { --glow: rgba(0,198,255,0.3); }
+  .card[data-color="mint"]   { --glow: rgba(0,255,198,0.3); }
+  .card[data-color="gold"]   { --glow: rgba(201,162,39,0.3); }
+  .card[data-color="pink"]   { --glow: rgba(255,46,154,0.3); }
+  .card[data-color="cyan"]   { --glow: rgba(45,226,255,0.3); }
+  .card[data-color="orange"] { --glow: rgba(255,140,0,0.3); }
+  .card[data-color="amber"]  { --glow: rgba(201,162,39,0.3); }
+  .card[data-color="rose"]   { --glow: rgba(255,99,132,0.3); }
+  .card[data-color="indigo"] { --glow: rgba(99,102,241,0.3); }
+  .card[data-color="teal"]   { --glow: rgba(20,184,166,0.3); }
+
+  .empty-msg { color: var(--text-sub); font-size: 0.95rem; text-align: center; }
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← 홈으로</a>
+
+<div class="page">
+  <header>
+    <p class="eyebrow">Mini Apps Collection</p>
+    <h1 id="page-title">카테고리</h1>
+    <p class="subtitle" id="page-subtitle"></p>
+  </header>
+
+  <section class="grid" id="grid-root"></section>
+</div>
+
+<script src="apps-data.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const cat = params.get('cat');
+const meta = CATEGORY_META[cat];
+
+const titleEl = document.getElementById('page-title');
+const subtitleEl = document.getElementById('page-subtitle');
+const gridEl = document.getElementById('grid-root');
+
+if (!meta) {
+  titleEl.textContent = '카테고리를 찾을 수 없어요';
+  subtitleEl.textContent = '홈으로 돌아가 다시 시도해주세요.';
+} else {
+  const catApps = APPS.filter(a => a.category === cat).sort((a, b) => new Date(a.released) - new Date(b.released));
+  titleEl.textContent = `${meta.icon} ${meta.label}`;
+  subtitleEl.textContent = `${catApps.length}개의 앱`;
+
+  if (catApps.length === 0) {
+    gridEl.innerHTML = '<p class="empty-msg">아직 이 카테고리에 앱이 없어요.</p>';
+  } else {
+    gridEl.innerHTML = catApps.map(app => `
+      <a class="card" href="${app.href}" data-color="${app.color}">
+        <div class="icon">${app.icon}</div>
+        <div class="title">${app.title}</div>
+        <div class="desc">${app.desc}</div>
+        <div class="arrow">→</div>
+      </a>`).join('');
+  }
+}
+</script>
+</body>
+</html>
