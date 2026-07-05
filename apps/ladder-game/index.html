@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사다리 타기</title>
+<meta name="description" content="인원수를 설정하고 이름을 입력해 랜덤 결과를 정하는 사다리 타기 게임. 1배속/3배속/5배속 애니메이션 지원.">
+<meta name="theme-color" content="#0d0d1a">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="icon" type="image/png" href="../../icon-512.png">
+<link rel="apple-touch-icon" href="../../icon-512.png">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chs2147.github.io/mini-apps/apps/ladder-game/">
+<meta property="og:title" content="사다리 타기 · Mini Apps">
+<meta property="og:description" content="인원수를 설정하고 이름을 입력해 랜덤 결과를 정하는 사다리 타기 게임. 1배속/3배속/5배속 애니메이션 지원.">
+<meta property="og:image" content="https://chs2147.github.io/mini-apps/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="사다리 타기 · Mini Apps">
+<meta name="twitter:description" content="인원수를 설정하고 이름을 입력해 랜덤 결과를 정하는 사다리 타기 게임. 1배속/3배속/5배속 애니메이션 지원.">
+<meta name="twitter:image" content="https://chs2147.github.io/mini-apps/og-image.png">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --text-sub: rgba(240,240,245,0.55);
+    --accent: #14b8a6;
+    --accent2: #a78bfa;
+  }
+
+  html, body {
+    width: 100%; min-height: 100%;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    color: var(--text);
+    background-color: #0a0a12;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 15%, rgba(20,184,166,0.16) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 85% 85%, rgba(167,139,250,0.16) 0%, transparent 55%);
+  }
+
+  .back {
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 30;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    text-decoration: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 7px 13px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    transition: color 0.2s, background 0.2s;
+  }
+  .back:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 60px 16px 40px;
+  }
+
+  h1 {
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 55%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    flex-shrink: 0;
+  }
+
+  /* ── Controls bar (play screen) ── */
+  .controls-bar {
+    display: none;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+  }
+  .controls-bar.show { display: flex; }
+
+  .speed-group {
+    display: flex;
+    gap: 6px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 4px;
+  }
+  .speed-btn {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: var(--text-sub);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .speed-btn.active { background: var(--accent); color: #04231f; }
+  .speed-btn:hover:not(.active) { background: rgba(255,255,255,0.08); }
+
+  .action-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 10px 18px;
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .action-btn:hover { background: rgba(255,255,255,0.14); }
+  .action-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .action-btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #04231f; border: none; }
+  .action-btn.primary:hover { opacity: 0.9; }
+
+  /* ── Ladder board ── */
+  .board-wrap {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .board-wrap.show { display: flex; }
+
+  #ladder-svg {
+    width: 100%;
+    max-width: 900px;
+    height: auto;
+    background: rgba(0,0,0,0.28);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+  }
+
+  .name-label, .result-label {
+    font-size: 12px;
+    fill: var(--text);
+    font-weight: 700;
+    text-anchor: middle;
+  }
+  .result-label { fill: var(--text-sub); font-weight: 600; }
+
+  .rung-line { stroke: rgba(255,255,255,0.18); stroke-width: 3; }
+  .col-line { stroke: rgba(255,255,255,0.14); stroke-width: 3; }
+
+  /* ── Results list ── */
+  .results-list {
+    display: none;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    width: 100%;
+    max-width: 900px;
+  }
+  .results-list.show { display: flex; }
+  .result-chip {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    animation: chipIn 0.35s ease forwards;
+  }
+  @keyframes chipIn { from { opacity: 0; transform: translateY(8px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .result-chip .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .result-chip b { color: var(--text); }
+
+  /* ── Setup overlay ── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(3,3,8,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .overlay.show { display: flex; }
+  .modal-box {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 28px;
+    backdrop-filter: blur(24px);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 460px;
+    width: 100%;
+    margin: auto;
+  }
+  .modal-title { font-size: 1.2rem; font-weight: 800; text-align: center; }
+  .modal-sub { color: var(--text-sub); font-size: 0.85rem; text-align: center; }
+
+  .slider-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .slider-row label { font-size: 0.8rem; color: var(--text-sub); display: flex; justify-content: space-between; }
+  .slider-row label b { color: var(--text); font-size: 1rem; }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+    height: 6px;
+  }
+
+  .names-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .name-row .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .name-row input {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-size: 0.88rem;
+    outline: none;
+  }
+  .name-row input:focus { border-color: var(--accent); }
+
+  .btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+  .btn:hover { background: rgba(255,255,255,0.16); }
+  .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #04231f; border: none; }
+  .btn.primary:hover { opacity: 0.9; }
+  .btn.ghost { background: transparent; border: 1px dashed var(--glass-border); }
+
+  .controls-hint {
+    font-size: 0.68rem;
+    color: var(--text-sub);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<a class="back" href="../../index.html">← 홈으로</a>
+
+<div class="page">
+  <h1>🪜 사다리 타기</h1>
+
+  <div class="controls-bar" id="controls-bar">
+    <div class="speed-group">
+      <button class="speed-btn active" data-speed="1">1배속</button>
+      <button class="speed-btn" data-speed="3">3배속</button>
+      <button class="speed-btn" data-speed="5">5배속</button>
+    </div>
+    <button class="action-btn primary" id="play-all-btn">전체 시작</button>
+    <button class="action-btn" id="skip-btn">전체 건너뛰기</button>
+    <button class="action-btn" id="reset-btn">다시 설정</button>
+  </div>
+
+  <div class="board-wrap" id="board-wrap">
+    <svg id="ladder-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+
+  <div class="results-list" id="results-list"></div>
+
+  <div class="controls-hint" id="hint-text"></div>
+</div>
+
+<div class="overlay show" id="overlay-setup">
+  <div class="modal-box">
+    <div class="modal-title">🪜 사다리 타기</div>
+    <div class="modal-sub">인원수를 정하고 이름을 확인·수정한 뒤 시작하세요.</div>
+
+    <div class="slider-row">
+      <label>인원수 <b id="count-display">5</b>명</label>
+      <input type="range" id="count-slider" min="2" max="10" value="5" step="1">
+    </div>
+
+    <div class="names-list" id="names-list"></div>
+
+    <button class="btn ghost" id="reroll-names-btn">🎲 이름 다시 뽑기</button>
+    <button class="btn primary" id="start-btn">사다리 타기 시작</button>
+  </div>
+</div>
+
+<script>
+const MIN_N = 2, MAX_N = 10;
+const PALETTE = ['#14b8a6','#a78bfa','#38bdf8','#facc15','#fb923c','#ff6384','#4ade80','#f472b6','#818cf8','#eab308'];
+
+const SURNAMES = ['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권'];
+const GIVEN = ['민','서','지','현','준','우','아','유','하','은','도','수','진','영','호','빈','시','율','재','태','나','로','린','우','채','솔'];
+
+function randomKoreanName() {
+  const s = SURNAMES[Math.floor(Math.random() * SURNAMES.length)];
+  const g1 = GIVEN[Math.floor(Math.random() * GIVEN.length)];
+  const g2 = GIVEN[Math.floor(Math.random() * GIVEN.length)];
+  return s + g1 + g2;
+}
+
+let count = 5;
+let names = [];
+let speed = 1;
+let rungs = [];       // rungs[row] = array length (N-1) of booleans
+let rows = 10;
+let paths = [];       // per-participant computed path info
+let currentIndex = 0;
+let playing = false;
+let skipRequested = false;
+
+const W = 800, H = 500;
+const TOP_PAD = 46, BOTTOM_PAD = 46, SIDE_PAD = 40;
+
+/* ── Setup screen ── */
+const countSlider = document.getElementById('count-slider');
+const countDisplay = document.getElementById('count-display');
+const namesList = document.getElementById('names-list');
+
+function renderNamesList() {
+  namesList.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    if (!names[i]) names[i] = randomKoreanName();
+    const row = document.createElement('div');
+    row.className = 'name-row';
+    row.innerHTML = `<span class="dot" style="background:${PALETTE[i % PALETTE.length]}"></span>
+      <input type="text" maxlength="6" value="${names[i]}" data-idx="${i}">`;
+    namesList.appendChild(row);
+  }
+  names.length = count;
+  namesList.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', () => { names[+inp.dataset.idx] = inp.value || `참가자${+inp.dataset.idx + 1}`; });
+  });
+}
+
+countSlider.addEventListener('input', () => {
+  count = parseInt(countSlider.value, 10);
+  countDisplay.textContent = count;
+  renderNamesList();
+});
+
+document.getElementById('reroll-names-btn').addEventListener('click', () => {
+  names = Array.from({ length: count }, () => randomKoreanName());
+  renderNamesList();
+});
+
+renderNamesList();
+
+/* ── Ladder generation ── */
+function generateLadder() {
+  rows = Math.max(8, Math.min(16, count * 2));
+  let attempts = 0;
+  do {
+    rungs = [];
+    for (let r = 0; r < rows; r++) {
+      const rowRungs = new Array(count - 1).fill(false);
+      const skip = new Set();
+      for (let c = 0; c < count - 1; c++) {
+        if (skip.has(c)) continue;
+        if (Math.random() < 0.35) {
+          rowRungs[c] = true;
+          skip.add(c + 1);
+        }
+      }
+      rungs.push(rowRungs);
+    }
+    attempts++;
+  } while (attempts < 6 && isIdentityMapping());
+}
+
+function isIdentityMapping() {
+  for (let c = 0; c < count; c++) {
+    if (traceFinalColumn(c) !== c) return false;
+  }
+  return true;
+}
+
+function traceFinalColumn(startCol) {
+  let col = startCol;
+  for (let r = 0; r < rows; r++) {
+    if (col < count - 1 && rungs[r][col]) col++;
+    else if (col > 0 && rungs[r][col - 1]) col--;
+  }
+  return col;
+}
+
+function colX(c) {
+  if (count === 1) return W / 2;
+  return SIDE_PAD + c * (W - SIDE_PAD * 2) / (count - 1);
+}
+function rowY(r) {
+  return TOP_PAD + r * (H - TOP_PAD - BOTTOM_PAD) / rows;
+}
+
+function buildPath(startCol) {
+  let col = startCol;
+  const pts = [{ x: colX(col), y: TOP_PAD }];
+  for (let r = 0; r < rows; r++) {
+    const y = rowY(r);
+    if (col < count - 1 && rungs[r][col]) {
+      pts.push({ x: colX(col), y });
+      col++;
+      pts.push({ x: colX(col), y });
+    } else if (col > 0 && rungs[r][col - 1]) {
+      pts.push({ x: colX(col), y });
+      col--;
+      pts.push({ x: colX(col), y });
+    }
+  }
+  pts.push({ x: colX(col), y: H - BOTTOM_PAD });
+  return { pts, finalCol: col };
+}
+
+function pointsToPathD(pts) {
+  return pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+}
+
+/* ── SVG rendering ── */
+const svg = document.getElementById('ladder-svg');
+
+function renderStaticLadder() {
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+
+  // vertical column lines
+  for (let c = 0; c < count; c++) {
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', colX(c)); line.setAttribute('y1', TOP_PAD);
+    line.setAttribute('x2', colX(c)); line.setAttribute('y2', H - BOTTOM_PAD);
+    line.setAttribute('class', 'col-line');
+    svg.appendChild(line);
+  }
+
+  // rungs
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < count - 1; c++) {
+      if (rungs[r][c]) {
+        const y = rowY(r);
+        const line = document.createElementNS(ns, 'line');
+        line.setAttribute('x1', colX(c)); line.setAttribute('y1', y);
+        line.setAttribute('x2', colX(c + 1)); line.setAttribute('y2', y);
+        line.setAttribute('class', 'rung-line');
+        svg.appendChild(line);
+      }
+    }
+  }
+
+  // name labels (top) and result labels (bottom)
+  for (let c = 0; c < count; c++) {
+    const nameText = document.createElementNS(ns, 'text');
+    nameText.setAttribute('x', colX(c)); nameText.setAttribute('y', TOP_PAD - 16);
+    nameText.setAttribute('class', 'name-label');
+    nameText.setAttribute('fill', PALETTE[c % PALETTE.length]);
+    nameText.textContent = names[c];
+    svg.appendChild(nameText);
+
+    const resultText = document.createElementNS(ns, 'text');
+    resultText.setAttribute('x', colX(c)); resultText.setAttribute('y', H - BOTTOM_PAD + 26);
+    resultText.setAttribute('class', 'result-label');
+    resultText.setAttribute('id', `result-slot-${c}`);
+    resultText.textContent = `${c + 1}번`;
+    svg.appendChild(resultText);
+  }
+}
+
+/* ── Animation ── */
+function animateParticipant(idx, onDone) {
+  const { pts, finalCol } = paths[idx];
+  const d = pointsToPathD(pts);
+  const ns = 'http://www.w3.org/2000/svg';
+
+  const pathEl = document.createElementNS(ns, 'path');
+  pathEl.setAttribute('d', d);
+  pathEl.setAttribute('fill', 'none');
+  pathEl.setAttribute('stroke', PALETTE[idx % PALETTE.length]);
+  pathEl.setAttribute('stroke-width', '5');
+  pathEl.setAttribute('stroke-linecap', 'round');
+  pathEl.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(pathEl);
+
+  const marker = document.createElementNS(ns, 'circle');
+  marker.setAttribute('r', 9);
+  marker.setAttribute('fill', PALETTE[idx % PALETTE.length]);
+  marker.style.filter = `drop-shadow(0 0 6px ${PALETTE[idx % PALETTE.length]})`;
+  svg.appendChild(marker);
+
+  const totalLen = pathEl.getTotalLength();
+  pathEl.style.strokeDasharray = totalLen;
+  pathEl.style.strokeDashoffset = totalLen;
+
+  const pxPerSec = 900 * speed;
+  const duration = Math.max(150, (totalLen / pxPerSec) * 1000);
+  const start = performance.now();
+
+  function frame(now) {
+    if (skipRequested) {
+      pathEl.style.strokeDashoffset = 0;
+      const endPt = pts[pts.length - 1];
+      marker.setAttribute('cx', endPt.x);
+      marker.setAttribute('cy', endPt.y);
+      finishParticipant(idx, finalCol, marker);
+      onDone();
+      return;
+    }
+    const t = Math.min(1, (now - start) / duration);
+    const len = t * totalLen;
+    pathEl.style.strokeDashoffset = totalLen - len;
+    const pt = pathEl.getPointAtLength(len);
+    marker.setAttribute('cx', pt.x);
+    marker.setAttribute('cy', pt.y);
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      finishParticipant(idx, finalCol, marker);
+      onDone();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+function finishParticipant(idx, finalCol, marker) {
+  marker.setAttribute('r', 11);
+  const slot = document.getElementById(`result-slot-${finalCol}`);
+  if (slot) {
+    slot.setAttribute('fill', PALETTE[idx % PALETTE.length]);
+    slot.style.fontWeight = '800';
+  }
+  addResultChip(idx, finalCol);
+}
+
+function addResultChip(idx, finalCol) {
+  const list = document.getElementById('results-list');
+  list.classList.add('show');
+  const chip = document.createElement('div');
+  chip.className = 'result-chip';
+  chip.innerHTML = `<span class="dot" style="background:${PALETTE[idx % PALETTE.length]}"></span>
+    <b>${names[idx]}</b> → ${finalCol + 1}번`;
+  list.appendChild(chip);
+}
+
+/* ── Playback control ── */
+function playAll() {
+  if (playing) return;
+  playing = true;
+  skipRequested = false;
+  document.getElementById('play-all-btn').disabled = true;
+  document.getElementById('hint-text').textContent = '';
+  currentIndex = 0;
+  playNext();
+}
+
+function playNext() {
+  if (currentIndex >= count) {
+    playing = false;
+    document.getElementById('play-all-btn').disabled = true;
+    document.getElementById('hint-text').textContent = '모든 참가자의 사다리 결과가 나왔습니다!';
+    return;
+  }
+  document.getElementById('hint-text').textContent = `${names[currentIndex]} 님이 사다리를 타는 중...`;
+  animateParticipant(currentIndex, () => {
+    currentIndex++;
+    setTimeout(playNext, skipRequested ? 0 : 220);
+  });
+}
+
+document.querySelectorAll('.speed-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    speed = parseInt(btn.dataset.speed, 10);
+  });
+});
+
+document.getElementById('play-all-btn').addEventListener('click', playAll);
+
+document.getElementById('skip-btn').addEventListener('click', () => {
+  skipRequested = true;
+  if (!playing) playAll();
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  document.getElementById('board-wrap').classList.remove('show');
+  document.getElementById('controls-bar').classList.remove('show');
+  document.getElementById('results-list').classList.remove('show');
+  document.getElementById('results-list').innerHTML = '';
+  document.getElementById('hint-text').textContent = '';
+  playing = false;
+  skipRequested = false;
+  document.getElementById('overlay-setup').classList.add('show');
+});
+
+/* ── Start ── */
+document.getElementById('start-btn').addEventListener('click', () => {
+  names.length = count;
+  for (let i = 0; i < count; i++) if (!names[i]) names[i] = randomKoreanName();
+
+  generateLadder();
+  paths = Array.from({ length: count }, (_, i) => buildPath(i));
+
+  document.getElementById('overlay-setup').classList.remove('show');
+  document.getElementById('controls-bar').classList.add('show');
+  document.getElementById('board-wrap').classList.add('show');
+  document.getElementById('results-list').classList.remove('show');
+  document.getElementById('results-list').innerHTML = '';
+  document.getElementById('play-all-btn').disabled = false;
+  document.getElementById('hint-text').textContent = '"전체 시작"을 눌러 사다리 타기를 시작하세요.';
+
+  renderStaticLadder();
+});
+</script>
+</body>
+</html>
