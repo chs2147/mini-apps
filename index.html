@@ -169,6 +169,7 @@
   .card:nth-child(7) { animation-delay: 0.82s; }
   .card:nth-child(8) { animation-delay: 0.94s; }
   .card:nth-child(9) { animation-delay: 1.06s; }
+  .card:nth-child(10) { animation-delay: 1.18s; }
 
   @keyframes cardIn {
     from { opacity: 0; transform: translateY(30px) scale(0.97); }
@@ -241,6 +242,7 @@
   .card[data-color="orange"] { --glow: rgba(255,140,0,0.3); }
   .card[data-color="amber"]  { --glow: rgba(201,162,39,0.3); }
   .card[data-color="rose"]   { --glow: rgba(255,99,132,0.3); }
+  .card[data-color="indigo"] { --glow: rgba(99,102,241,0.3); }
 
   .card:hover {
     box-shadow:
@@ -327,6 +329,13 @@
       <div class="card-icon">🧩</div>
       <div class="card-title">슬라이딩 넘버 퍼즐</div>
       <div class="card-desc">숫자를 순서대로 정렬하는 클래식 퍼즐. 3×3부터 8×8까지 크기 선택 가능.</div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a class="card" href="apps/perfect-timing/index.html" data-color="indigo">
+      <div class="card-icon">⏰</div>
+      <div class="card-title">정각 맞추기</div>
+      <div class="card-desc">8시 59분 50초부터 흘러가는 시계를 보며 정확히 9시 정각에 클릭하는 타이밍 게임.</div>
       <div class="card-arrow">→</div>
     </a>
   </section>

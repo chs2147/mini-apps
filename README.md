@@ -19,6 +19,7 @@
 | 🔢 [2048](apps/2048/index.html) | 같은 숫자 타일을 합쳐 2048을 만드는 클래식 퍼즐 게임 |
 | 🎲 [주사위 연대기](apps/dice-chronicle/index.html) | 중세풍 1인용 Roll & Write 게임. 주사위를 굴려 6개 영역을 채우고 여우 보너스까지 노려보세요 |
 | 🧩 [슬라이딩 넘버 퍼즐](apps/slide-puzzle/index.html) | 숫자를 순서대로 정렬하는 클래식 퍼즐. 3×3~8×8 크기 선택, 이동 횟수·시간 기록 |
+| ⏰ [정각 맞추기](apps/perfect-timing/index.html) | 8시 59분 50초부터 흘러가는 아날로그 시계를 보며 정확히 9시 정각에 클릭하는 타이밍 게임. 오차를 0.01초 단위로 기록 |
 
 ---
 
@@ -44,7 +45,9 @@ mini-apps/
     │   └── index.html
     ├── dice-chronicle/
     │   └── index.html
-    └── slide-puzzle/
+    ├── slide-puzzle/
+    │   └── index.html
+    └── perfect-timing/
         └── index.html
 ```
 

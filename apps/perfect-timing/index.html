@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정각 맞추기</title>
+<meta name="description" content="8시 59분 50초부터 시작해 정확히 9시 정각에 클릭하는 타이밍 게임. 오차를 0.01초 단위로 기록합니다.">
+<meta name="theme-color" content="#0d0d1a">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="icon" type="image/png" href="../../icon-512.png">
+<link rel="apple-touch-icon" href="../../icon-512.png">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chs2147.github.io/mini-apps/apps/perfect-timing/">
+<meta property="og:title" content="정각 맞추기 · Mini Apps">
+<meta property="og:description" content="8시 59분 50초부터 시작해 정확히 9시 정각에 클릭하는 타이밍 게임. 오차를 0.01초 단위로 기록합니다.">
+<meta property="og:image" content="https://chs2147.github.io/mini-apps/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="정각 맞추기 · Mini Apps">
+<meta name="twitter:description" content="8시 59분 50초부터 시작해 정확히 9시 정각에 클릭하는 타이밍 게임. 오차를 0.01초 단위로 기록합니다.">
+<meta name="twitter:image" content="https://chs2147.github.io/mini-apps/og-image.png">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --text-sub: rgba(240,240,245,0.55);
+    --accent: #6366f1;
+    --accent2: #2de2ff;
+    --urgent: #ff2e2e;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    color: var(--text);
+    background-color: #0a0a12;
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+  }
+
+  body {
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 15%, rgba(99,102,241,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 85% 85%, rgba(45,226,255,0.14) 0%, transparent 55%);
+  }
+
+  body.tick-flash {
+    animation: bodyFlash 0.25s ease-out;
+  }
+  @keyframes bodyFlash {
+    0% { background-color: rgba(99,102,241,0.12); }
+    100% { background-color: #0a0a12; }
+  }
+
+  .shake { animation: shakeAnim 0.3s ease-in-out; }
+  @keyframes shakeAnim {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px) rotate(-0.5deg); }
+    75% { transform: translateX(4px) rotate(0.5deg); }
+  }
+
+  .back {
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 30;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    text-decoration: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 7px 13px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    transition: color 0.2s, background 0.2s;
+  }
+  .back:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+  .page {
+    width: 100%; height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 54px 12px 12px;
+  }
+
+  h1 {
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 55%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    flex-shrink: 0;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .stat-box {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 8px 16px;
+    text-align: center;
+    min-width: 84px;
+  }
+  .stat-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-sub); }
+  .stat-value { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+  /* ── Clock ── */
+  .clock-wrap {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+  }
+
+  #clock-face {
+    width: min(52vh, 62vw, 380px);
+    height: min(52vh, 62vw, 380px);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.06), rgba(0,0,0,0.4) 70%);
+    border: 3px solid var(--glass-border);
+    position: relative;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 20px 50px rgba(0,0,0,0.5);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+    flex-shrink: 0;
+  }
+  #clock-face.pulse {
+    animation: clockPulse 0.25s ease-out;
+  }
+  @keyframes clockPulse {
+    0% { transform: scale(1.04); box-shadow: 0 0 40px 8px var(--pulse-color, rgba(99,102,241,0.5)); }
+    100% { transform: scale(1); box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 20px 50px rgba(0,0,0,0.5); }
+  }
+  #clock-face.chime {
+    animation: clockChime 0.6s ease-out;
+  }
+  @keyframes clockChime {
+    0% { transform: scale(1.12); box-shadow: 0 0 80px 20px rgba(45,226,255,0.9); }
+    100% { transform: scale(1); box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 20px 50px rgba(0,0,0,0.5); }
+  }
+
+  .tick {
+    position: absolute;
+    width: 3px;
+    height: 12px;
+    background: rgba(255,255,255,0.35);
+    left: 50%;
+    top: 4px;
+    transform-origin: 50% calc(min(26vh, 31vw, 190px) - 4px);
+    margin-left: -1.5px;
+    border-radius: 2px;
+  }
+  .tick.major { width: 5px; height: 18px; background: rgba(255,255,255,0.6); margin-left: -2.5px; }
+
+  .hand {
+    position: absolute;
+    left: 50%;
+    bottom: 50%;
+    transform-origin: 50% 100%;
+    border-radius: 4px;
+  }
+  .hand-hour   { width: 7px; height: 26%; background: var(--text); margin-left: -3.5px; }
+  .hand-minute { width: 5px; height: 37%; background: var(--text); margin-left: -2.5px; }
+  .hand-second { width: 2.5px; height: 42%; background: var(--urgent); margin-left: -1.25px; box-shadow: 0 0 8px rgba(255,46,46,0.6); }
+
+  .center-dot {
+    position: absolute;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--text);
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 6px rgba(0,0,0,0.5);
+  }
+
+  .countdown-digit {
+    font-size: clamp(2.4rem, 8vw, 3.6rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    color: var(--digit-color, var(--text));
+    text-shadow: 0 0 20px var(--digit-glow, transparent);
+    transition: color 0.2s ease;
+    min-height: 1.2em;
+  }
+
+  .target-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 16px;
+    padding: 18px 48px;
+    color: #050510;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.12s ease, opacity 0.2s;
+    box-shadow: 0 10px 30px rgba(99,102,241,0.35);
+  }
+  .target-btn:hover { transform: scale(1.04); }
+  .target-btn:active { transform: scale(0.96); }
+  .target-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  .controls-hint {
+    font-size: 0.68rem;
+    color: var(--text-sub);
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Result panel ── */
+  .result-panel {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+  }
+  .result-panel.show { display: flex; }
+  .result-delta {
+    font-size: clamp(2rem, 7vw, 3rem);
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+  }
+  .result-feedback { font-size: 1rem; font-weight: 700; color: var(--text-sub); }
+
+  /* ── Overlays ── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(3,3,8,0.82);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    backdrop-filter: blur(6px);
+    padding: 20px;
+    text-align: center;
+  }
+  .overlay.show { display: flex; }
+  .modal-box {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 26px;
+    backdrop-filter: blur(24px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 340px;
+    width: 100%;
+  }
+  .overlay-title { font-size: 1.2rem; font-weight: 800; }
+  .overlay-sub { color: var(--text-sub); font-size: 0.88rem; }
+  .btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+  .btn:hover { background: rgba(255,255,255,0.16); }
+  .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #050510; border: none; }
+  .btn.primary:hover { opacity: 0.9; }
+
+  /* ── Distraction overlays ── */
+  .static-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0;
+    mix-blend-mode: overlay;
+  }
+  .static-overlay.show { opacity: 0.7; }
+
+  .flash-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 34;
+    pointer-events: none;
+    background: transparent;
+  }
+  .flash-overlay.red { background: rgba(255,0,0,0.32); }
+  .flash-overlay.white { background: rgba(255,255,255,0.5); }
+
+  .round-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-top: 2px;
+  }
+  .round-tag.trick { background: rgba(255,46,46,0.15); color: #ff8080; }
+  .round-tag.clean { background: rgba(52,211,153,0.15); color: #6ee7b7; }
+</style>
+</head>
+<body>
+<a class="back" href="../../index.html">← 홈으로</a>
+
+<div class="static-overlay" id="static-overlay"></div>
+<div class="flash-overlay" id="flash-overlay"></div>
+
+<div class="page">
+  <h1>⏰ 정각 맞추기</h1>
+
+  <div class="stats-bar">
+    <div class="stat-box">
+      <div class="stat-label">시도</div>
+      <div class="stat-value" id="attempts-value">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">최고 기록</div>
+      <div class="stat-value" id="best-value">-</div>
+    </div>
+  </div>
+
+  <div class="clock-wrap">
+    <div id="clock-face">
+      <div class="hand hand-hour" id="hand-hour"></div>
+      <div class="hand hand-minute" id="hand-minute"></div>
+      <div class="hand hand-second" id="hand-second"></div>
+      <div class="center-dot"></div>
+    </div>
+
+    <div class="countdown-digit" id="countdown-digit">준비</div>
+
+    <button class="target-btn" id="target-btn">지금 클릭!</button>
+
+    <div class="result-panel" id="result-panel">
+      <div class="result-delta" id="result-delta"></div>
+      <div class="result-feedback" id="result-feedback"></div>
+      <span class="round-tag" id="round-tag"></span>
+      <button class="btn primary" id="retry-btn">다시 도전</button>
+    </div>
+  </div>
+
+  <div class="controls-hint" id="hint-text">8시 59분 50초부터 시작해 정확히 9시 정각에 버튼을 누르세요 (스페이스바 가능)</div>
+</div>
+
+<div class="overlay show" id="overlay-start">
+  <div class="modal-box">
+    <div class="overlay-title">⏰ 정각 맞추기</div>
+    <div class="overlay-sub">
+      시계가 8시 59분 50초부터 흘러갑니다.<br>
+      정확히 <b>9시 정각(9:00:00.00)</b>이 되는 순간 버튼을 누르세요.<br><br>
+      누른 시점이 정각보다 몇 초 빠른지·느린지 0.01초 단위로 기록됩니다.<br><br>
+      ⚠️ 정각이 가까워질수록 가짜 벨소리·화면 노이즈 같은 방해 효과가 나타날 수 있어요. 가끔은 방해 없이 조용히 지나가는 라운드도 있습니다.
+    </div>
+    <button class="btn primary" id="start-btn">시작하기</button>
+  </div>
+</div>
+
+<script>
+const CLOCK_TICK_DEGS = { tick: 6 };
+const ROUND_START_SEC = 50;   // virtual seconds value at round start (8:59:50)
+const ROUND_TARGET_SEC = 60;  // virtual seconds value at target (9:00:00)
+const AUTO_TIMEOUT_SEC = 63;  // auto-register a miss 3s after target if unclicked
+const PREP_DELAY_MS = 1200;
+
+let audioCtx = null;
+let startPerf = null;
+let targetPerf = null;
+let rafId = null;
+let lastTickInt = null;
+let running = false;
+let locked = false;
+
+let isDistractionRound = false;
+let distractionTimeouts = [];
+let digitOverrideUntil = 0;
+let handsOverrideUntil = 0;
+
+const DISTRACTION_ROUND_CHANCE = 0.7; // 70% of rounds include distractions
+
+const handHour = document.getElementById('hand-hour');
+const handMinute = document.getElementById('hand-minute');
+const handSecond = document.getElementById('hand-second');
+const clockFace = document.getElementById('clock-face');
+const digitEl = document.getElementById('countdown-digit');
+const targetBtn = document.getElementById('target-btn');
+const resultPanel = document.getElementById('result-panel');
+const hintText = document.getElementById('hint-text');
+const staticOverlay = document.getElementById('static-overlay');
+const flashOverlay = document.getElementById('flash-overlay');
+
+/* ── Clock face ticks ── */
+(function buildTicks() {
+  for (let i = 0; i < 60; i++) {
+    const t = document.createElement('div');
+    t.className = 'tick' + (i % 5 === 0 ? ' major' : '');
+    t.style.transform = `rotate(${i * 6}deg)`;
+    clockFace.appendChild(t);
+  }
+})();
+
+/* ── Audio ── */
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playTick(freq) {
+  if (!audioCtx) return;
+  const t0 = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.22, t0);
+  gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.09);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(t0);
+  osc.stop(t0 + 0.1);
+}
+function playChime() {
+  if (!audioCtx) return;
+  const t0 = audioCtx.currentTime;
+  [880, 1320].forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.001, t0);
+    gain.gain.linearRampToValueAtTime(0.25 / (i + 1), t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.8);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.85);
+  });
+}
+function playClickFeedback() {
+  if (!audioCtx) return;
+  const t0 = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.value = 220;
+  gain.gain.setValueAtTime(0.15, t0);
+  gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.06);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(t0);
+  osc.stop(t0 + 0.07);
+}
+function playNoiseBurst() {
+  if (!audioCtx) return;
+  const dur = 0.16;
+  const bufferSize = Math.floor(audioCtx.sampleRate * dur);
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  const src = audioCtx.createBufferSource();
+  src.buffer = buffer;
+  const gain = audioCtx.createGain();
+  gain.gain.value = 0.16;
+  src.connect(gain);
+  gain.connect(audioCtx.destination);
+  src.start();
+}
+function playGlitchSound() {
+  if (!audioCtx) return;
+  const t0 = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(220, t0);
+  osc.frequency.exponentialRampToValueAtTime(45, t0 + 0.15);
+  gain.gain.setValueAtTime(0.14, t0);
+  gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.15);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(t0);
+  osc.stop(t0 + 0.16);
+}
+function playAlarmBeep() {
+  if (!audioCtx) return;
+  const t0 = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(700, t0);
+  osc.frequency.linearRampToValueAtTime(950, t0 + 0.12);
+  gain.gain.setValueAtTime(0.11, t0);
+  gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.16);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(t0);
+  osc.stop(t0 + 0.17);
+}
+
+/* ── Distraction effects ──
+   During the final seconds of a "trick" round, random visual/audio
+   interference fires to throw off the player's timing. Some rounds
+   (DISTRACTION_ROUND_CHANCE) run completely clean with no interference. */
+const DISTRACTION_EFFECTS = ['fakeChime', 'invert', 'glitchDigit', 'handJitter', 'staticNoise', 'redFlash', 'fakeTickBurst'];
+
+function scheduleDistractions() {
+  distractionTimeouts.forEach(id => clearTimeout(id));
+  distractionTimeouts = [];
+  isDistractionRound = Math.random() < DISTRACTION_ROUND_CHANCE;
+  if (!isDistractionRound) return;
+
+  const windowMs = (ROUND_TARGET_SEC - ROUND_START_SEC) * 1000; // 10000ms, full round
+  const eventCount = 2 + Math.floor(Math.random() * 3); // 2-4 events per round
+  for (let i = 0; i < eventCount; i++) {
+    // bias toward the later part of the countdown (closer to 9:00:00)
+    const remainingSec = 0.3 + Math.pow(Math.random(), 1.8) * 6.5;
+    const delayMs = windowMs - remainingSec * 1000;
+    if (delayMs < 400) continue;
+    const id = setTimeout(() => {
+      if (!running || locked) return;
+      triggerRandomDistraction();
+    }, delayMs);
+    distractionTimeouts.push(id);
+  }
+}
+
+function clearDistractions() {
+  distractionTimeouts.forEach(id => clearTimeout(id));
+  distractionTimeouts = [];
+  digitOverrideUntil = 0;
+  handsOverrideUntil = 0;
+  staticOverlay.classList.remove('show');
+  flashOverlay.className = 'flash-overlay';
+  document.body.style.filter = '';
+}
+
+function triggerRandomDistraction() {
+  const effect = DISTRACTION_EFFECTS[Math.floor(Math.random() * DISTRACTION_EFFECTS.length)];
+  if (effect === 'fakeChime') fakeChimeEffect();
+  else if (effect === 'invert') invertFlashEffect();
+  else if (effect === 'glitchDigit') glitchDigitEffect();
+  else if (effect === 'handJitter') handJitterEffect();
+  else if (effect === 'staticNoise') staticNoiseEffect();
+  else if (effect === 'redFlash') redFlashEffect();
+  else if (effect === 'fakeTickBurst') fakeTickBurstEffect();
+}
+
+function fakeChimeEffect() {
+  playChime();
+  clockFace.classList.remove('pulse');
+  clockFace.classList.add('chime');
+  setTimeout(() => clockFace.classList.remove('chime'), 650);
+  digitEl.textContent = '9:00:00';
+  digitEl.style.setProperty('--digit-color', '#2de2ff');
+  digitEl.style.setProperty('--digit-glow', 'rgba(45,226,255,0.8)');
+  digitOverrideUntil = performance.now() + 260;
+  flashOverlay.classList.add('white');
+  setTimeout(() => flashOverlay.classList.remove('white'), 180);
+}
+
+function invertFlashEffect() {
+  document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+  setTimeout(() => { document.body.style.filter = ''; }, 160 + Math.random() * 120);
+  playNoiseBurst();
+}
+
+function glitchDigitEffect() {
+  const fakes = ['??', '∞', '0', '55', '13', '?!'];
+  digitEl.textContent = fakes[Math.floor(Math.random() * fakes.length)];
+  digitEl.style.setProperty('--digit-color', '#ff2e2e');
+  digitEl.style.setProperty('--digit-glow', 'rgba(255,46,46,0.8)');
+  digitOverrideUntil = performance.now() + 150 + Math.random() * 150;
+  playGlitchSound();
+}
+
+function handJitterEffect() {
+  const randAngle = () => Math.random() * 360;
+  handSecond.style.transform = `translateX(-50%) rotate(${randAngle()}deg)`;
+  handMinute.style.transform = `translateX(-50%) rotate(${randAngle()}deg)`;
+  handHour.style.transform = `translateX(-50%) rotate(${randAngle()}deg)`;
+  handsOverrideUntil = performance.now() + 150 + Math.random() * 150;
+  playGlitchSound();
+}
+
+function staticNoiseEffect() {
+  staticOverlay.classList.add('show');
+  setTimeout(() => staticOverlay.classList.remove('show'), 150 + Math.random() * 150);
+  playNoiseBurst();
+}
+
+function redFlashEffect() {
+  flashOverlay.classList.add('red');
+  setTimeout(() => flashOverlay.classList.remove('red'), 160);
+  playAlarmBeep();
+}
+
+function fakeTickBurstEffect() {
+  const count = 3 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => { if (running && !locked) playTick(300 + Math.random() * 500); }, i * 70);
+  }
+}
+
+/* ── Round lifecycle ── */
+function beginRound() {
+  locked = false;
+  clearDistractions();
+  resultPanel.classList.remove('show');
+  targetBtn.style.display = '';
+  targetBtn.disabled = true;
+  hintText.textContent = '준비하세요...';
+  digitEl.textContent = '준비';
+  digitEl.style.setProperty('--digit-color', 'var(--text-sub)');
+  digitEl.style.setProperty('--digit-glow', 'transparent');
+  renderHands(ROUND_START_SEC);
+  lastTickInt = Math.floor(ROUND_START_SEC);
+
+  setTimeout(() => {
+    startPerf = performance.now();
+    targetPerf = startPerf + (ROUND_TARGET_SEC - ROUND_START_SEC) * 1000;
+    running = true;
+    targetBtn.disabled = false;
+    hintText.textContent = '9시 정각에 버튼을 누르세요!';
+    scheduleDistractions();
+    rafId = requestAnimationFrame(tickLoop);
+  }, PREP_DELAY_MS);
+}
+
+function tickLoop() {
+  if (!running) return;
+  const now = performance.now();
+  const elapsedSec = (now - startPerf) / 1000;
+  const virtualSec = ROUND_START_SEC + elapsedSec;
+
+  if (now >= handsOverrideUntil) renderHands(virtualSec);
+  if (now >= digitOverrideUntil) updateCountdownDigit(virtualSec);
+
+  const curInt = Math.floor(virtualSec);
+  if (curInt !== lastTickInt && curInt <= ROUND_TARGET_SEC) {
+    lastTickInt = curInt;
+    onSecondTick(curInt);
+  }
+
+  if (virtualSec >= AUTO_TIMEOUT_SEC && !locked) {
+    finishRound(performance.now());
+    return;
+  }
+
+  rafId = requestAnimationFrame(tickLoop);
+}
+
+function onSecondTick(curInt) {
+  const remaining = ROUND_TARGET_SEC - curInt;
+  if (curInt === ROUND_TARGET_SEC) {
+    // exact zero moment
+    playChime();
+    clockFace.classList.remove('pulse');
+    clockFace.classList.add('chime');
+    setTimeout(() => clockFace.classList.remove('chime'), 650);
+    document.body.classList.add('tick-flash');
+    setTimeout(() => document.body.classList.remove('tick-flash'), 260);
+    return;
+  }
+
+  const urgency = Math.max(0, 1 - remaining / 10); // 0 far -> 1 close
+  const freq = 420 + urgency * 380;
+  playTick(freq);
+
+  const pulseColor = mixColor(urgency);
+  clockFace.style.setProperty('--pulse-color', pulseColor);
+  clockFace.classList.remove('pulse');
+  void clockFace.offsetWidth;
+  clockFace.classList.add('pulse');
+
+  document.body.classList.add('tick-flash');
+  setTimeout(() => document.body.classList.remove('tick-flash'), 250);
+
+  if (remaining <= 3) {
+    document.querySelector('.page').classList.remove('shake');
+    void document.querySelector('.page').offsetWidth;
+    document.querySelector('.page').classList.add('shake');
+  }
+}
+
+function mixColor(t) {
+  // interpolate rgb(99,102,241) -> rgb(255,46,46)
+  const r = Math.round(99 + (255 - 99) * t);
+  const g = Math.round(102 + (46 - 102) * t);
+  const b = Math.round(241 + (46 - 241) * t);
+  return `rgba(${r},${g},${b},0.55)`;
+}
+
+function updateCountdownDigit(virtualSec) {
+  const remaining = ROUND_TARGET_SEC - virtualSec;
+  if (remaining > 0) {
+    digitEl.textContent = remaining >= 9.95 ? '10' : Math.ceil(remaining).toString();
+    const urgency = Math.max(0, 1 - remaining / 10);
+    digitEl.style.setProperty('--digit-color', mixColor(urgency).replace('0.55', '1'));
+    digitEl.style.setProperty('--digit-glow', mixColor(urgency));
+  } else {
+    digitEl.textContent = '9:00:00';
+    digitEl.style.setProperty('--digit-color', '#2de2ff');
+    digitEl.style.setProperty('--digit-glow', 'rgba(45,226,255,0.8)');
+  }
+}
+
+function renderHands(virtualSec) {
+  const secInMinute = virtualSec % 60;
+  const totalMinutesFrom859 = 59 + virtualSec / 60;
+  const minuteVal = totalMinutesFrom859 % 60;
+  const hourVal = (8 + totalMinutesFrom859 / 60) % 12;
+
+  handSecond.style.transform = `translateX(-50%) rotate(${secInMinute * 6}deg)`;
+  handMinute.style.transform = `translateX(-50%) rotate(${minuteVal * 6}deg)`;
+  handHour.style.transform = `translateX(-50%) rotate(${hourVal * 30}deg)`;
+}
+
+/* ── Attempt / scoring ── */
+function attemptClick() {
+  if (!running || locked) return;
+  finishRound(performance.now());
+}
+
+function finishRound(clickPerf) {
+  running = false;
+  locked = true;
+  if (rafId) cancelAnimationFrame(rafId);
+  clearDistractions();
+  targetBtn.disabled = true;
+
+  const deltaMs = clickPerf - targetPerf;
+  const deltaSec = deltaMs / 1000;
+  const absSec = Math.abs(deltaSec);
+
+  const attempts = (parseInt(localStorage.getItem('perfect-timing-attempts') || '0', 10)) + 1;
+  localStorage.setItem('perfect-timing-attempts', String(attempts));
+  document.getElementById('attempts-value').textContent = attempts;
+
+  const prevBest = localStorage.getItem('perfect-timing-best');
+  const isNewBest = prevBest === null || absSec < parseFloat(prevBest);
+  if (isNewBest) localStorage.setItem('perfect-timing-best', String(absSec));
+  document.getElementById('best-value').textContent = formatSeconds(isNewBest ? absSec : parseFloat(prevBest)) + 's';
+
+  const sign = deltaSec > 0 ? '+' : deltaSec < 0 ? '−' : '';
+  const label = deltaSec > 0.005 ? '느림' : deltaSec < -0.005 ? '빠름' : '정확!';
+  const deltaEl = document.getElementById('result-delta');
+  const feedbackEl = document.getElementById('result-feedback');
+
+  deltaEl.textContent = `${sign}${formatSeconds(absSec)}초`;
+  deltaEl.style.color = absSec < 0.1 ? '#34d399' : absSec < 0.5 ? '#facc15' : '#ff6b6b';
+
+  let msg = `${label}`;
+  if (absSec < 0.05) msg = '🎯 완벽에 가까운 타이밍!';
+  else if (absSec < 0.2) msg = `🔥 훌륭해요 (${label})`;
+  else if (absSec < 0.6) msg = `👍 좋아요 (${label})`;
+  else if (absSec < 1.5) msg = `${label} — 조금 더 집중해보세요`;
+  else msg = `${label} — 너무 ${deltaSec > 0 ? '늦었어요' : '빨랐어요'}`;
+  if (isNewBest) msg += ' · 🏆 신기록!';
+  feedbackEl.textContent = msg;
+
+  const tagEl = document.getElementById('round-tag');
+  if (isDistractionRound) {
+    tagEl.textContent = '🌀 방해 라운드';
+    tagEl.className = 'round-tag trick';
+  } else {
+    tagEl.textContent = '😌 평온한 라운드';
+    tagEl.className = 'round-tag clean';
+  }
+
+  targetBtn.style.display = 'none';
+  resultPanel.classList.add('show');
+  hintText.textContent = '결과를 확인하고 다시 도전해보세요';
+  playClickFeedback();
+}
+
+function formatSeconds(s) {
+  return s.toFixed(2);
+}
+
+/* ── Wiring ── */
+document.getElementById('start-btn').addEventListener('click', () => {
+  ensureAudio();
+  document.getElementById('overlay-start').classList.remove('show');
+  const attempts = parseInt(localStorage.getItem('perfect-timing-attempts') || '0', 10);
+  document.getElementById('attempts-value').textContent = attempts;
+  const best = localStorage.getItem('perfect-timing-best');
+  document.getElementById('best-value').textContent = best !== null ? formatSeconds(parseFloat(best)) + 's' : '-';
+  beginRound();
+});
+
+targetBtn.addEventListener('click', attemptClick);
+document.getElementById('retry-btn').addEventListener('click', beginRound);
+
+document.addEventListener('keydown', e => {
+  if ((e.key === ' ' || e.key === 'Enter') && running && !locked) {
+    e.preventDefault();
+    attemptClick();
+  }
+});
+</script>
+</body>
+</html>
