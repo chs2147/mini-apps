@@ -118,6 +118,17 @@
   .card .icon { font-size: 2.2rem; }
   .card .title { font-size: 1.12rem; font-weight: 700; letter-spacing: -0.01em; }
   .card .desc { font-size: 0.84rem; color: var(--text-sub); line-height: 1.55; flex: 1; }
+  .device-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .device-badge {
+    font-size: 0.64rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-sub);
+    white-space: nowrap;
+  }
   .card .arrow {
     align-self: flex-end;
     width: 32px; height: 32px;
@@ -157,7 +168,7 @@
   <section class="grid" id="grid-root"></section>
 </div>
 
-<script src="apps-data.js"></script>
+<script src="apps-data.js?v=2"></script>
 <script>
 const params = new URLSearchParams(location.search);
 const cat = params.get('cat');
@@ -183,6 +194,7 @@ if (!meta) {
         <div class="icon">${app.icon}</div>
         <div class="title">${app.title}</div>
         <div class="desc">${app.desc}</div>
+        <div class="device-badges">${deviceBadgesHtml(app)}</div>
         <div class="arrow">→</div>
       </a>`).join('');
   }
