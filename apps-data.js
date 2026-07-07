@@ -17,20 +17,43 @@ const APPS = [
   { id: 'slide-puzzle', title: '슬라이딩 넘버 퍼즐', desc: '숫자를 순서대로 정렬하는 클래식 퍼즐. 3×3부터 8×8까지 크기 선택 가능.', icon: '🧩', color: 'rose', href: 'apps/slide-puzzle/index.html', category: 'games', released: '2026-07-04T00:51:24', devices: ['desktop', 'mobile'] },
   { id: 'perfect-timing', title: '정각 맞추기', desc: '8시 59분 50초부터 흘러가는 시계를 보며 정확히 9시 정각에 클릭하는 타이밍 게임.', icon: '⏰', color: 'indigo', href: 'apps/perfect-timing/index.html', category: 'games', released: '2026-07-05T17:51:15', devices: ['desktop', 'mobile'] },
   { id: 'ladder-game', title: '사다리 타기', desc: '인원수와 이름을 설정하고 결과를 배정하는 사다리 타기. 1/3/5배속 애니메이션 지원.', icon: '🪜', color: 'teal', href: 'apps/ladder-game/index.html', category: 'tools', released: '2026-07-05T21:09:44', devices: ['desktop', 'mobile'] },
+
+  /* ── Exclusive: 외부 링크로 제공되는 앱. 새 탭으로 열리며(external:true),
+     devices는 명시적으로 확인된 것만 적는다 — 비워두면 뱃지 없음. ── */
+  { id: 'pdf-file-splitter', title: 'PDF 파일 분할기', desc: 'PDF 파일을 원하는 페이지 단위로 손쉽게 분할할 수 있는 도구.', icon: '📄', color: 'cyan', href: 'https://pdf-file-splitter.vercel.app', category: 'exclusive', external: true, released: '2026-07-07T22:43:40', devices: ['desktop', 'mobile'] },
+  { id: 'image-splitter', title: '이미지 분할기', desc: '이미지를 여러 조각으로 분할해주는 도구.', icon: '🖼️', color: 'rose', href: 'https://chs2147.github.io/image-splitter/', category: 'exclusive', external: true, released: '2026-07-07T22:43:41', devices: ['desktop'] },
 ];
 
 const CATEGORY_META = {
+  exclusive: { label: 'Exclusive', icon: '⭐' },
   games:     { label: '게임', icon: '🎮' },
   tools:     { label: '도구 & 크리에이티브', icon: '🛠️' },
   lifestyle: { label: '라이프스타일', icon: '🧘' },
 };
 
-const CATEGORY_ORDER = ['games', 'tools', 'lifestyle'];
+const CATEGORY_ORDER = ['exclusive', 'games', 'tools', 'lifestyle'];
 
 const DEVICE_META = {
   desktop: { label: '데스크탑', icon: '🖥️' },
   mobile:  { label: '모바일', icon: '📱' },
 };
+
+/* Monogram badges replace emoji for section headers (Featured/Updated/
+   category titles). Each entry: single-letter label + gradient colors. */
+const SECTION_MONOGRAMS = {
+  featured:  { letter: 'F', from: '#a78bfa', to: '#38bdf8' },
+  updated:   { letter: 'U', from: '#38bdf8', to: '#34d399' },
+  exclusive: { letter: 'E', from: '#ff2e9a', to: '#7b2fff' },
+  games:     { letter: 'G', from: '#38bdf8', to: '#6366f1' },
+  tools:     { letter: 'T', from: '#14b8a6', to: '#2de2ff' },
+  lifestyle: { letter: 'L', from: '#a78bfa', to: '#34d399' },
+};
+
+function monogramHtml(key) {
+  const m = SECTION_MONOGRAMS[key];
+  if (!m) return '';
+  return `<span class="section-monogram" style="background:linear-gradient(135deg, ${m.from}, ${m.to})">${m.letter}</span>`;
+}
 
 function deviceBadgesHtml(app) {
   const devices = app.devices || [];
@@ -39,4 +62,8 @@ function deviceBadgesHtml(app) {
     if (!meta) return '';
     return `<span class="device-badge" title="${meta.label} 지원">${meta.icon} ${meta.label}</span>`;
   }).join('');
+}
+
+function cardLinkAttrs(app) {
+  return app.external ? 'target="_blank" rel="noopener noreferrer"' : '';
 }

@@ -82,6 +82,19 @@
     background-clip: text;
   }
   .subtitle { margin-top: 10px; color: var(--text-sub); font-size: 0.95rem; }
+  .section-monogram {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.72em; height: 0.72em;
+    border-radius: 0.22em;
+    font-size: 0.55em;
+    font-weight: 800;
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    vertical-align: middle;
+  }
 
   .grid {
     display: grid;
@@ -168,7 +181,7 @@
   <section class="grid" id="grid-root"></section>
 </div>
 
-<script src="apps-data.js?v=2"></script>
+<script src="apps-data.js?v=3"></script>
 <script>
 const params = new URLSearchParams(location.search);
 const cat = params.get('cat');
@@ -183,14 +196,14 @@ if (!meta) {
   subtitleEl.textContent = '홈으로 돌아가 다시 시도해주세요.';
 } else {
   const catApps = APPS.filter(a => a.category === cat).sort((a, b) => new Date(a.released) - new Date(b.released));
-  titleEl.textContent = `${meta.icon} ${meta.label}`;
+  titleEl.innerHTML = `${monogramHtml(cat)} ${meta.label}`;
   subtitleEl.textContent = `${catApps.length}개의 앱`;
 
   if (catApps.length === 0) {
     gridEl.innerHTML = '<p class="empty-msg">아직 이 카테고리에 앱이 없어요.</p>';
   } else {
     gridEl.innerHTML = catApps.map(app => `
-      <a class="card" href="${app.href}" data-color="${app.color}">
+      <a class="card" href="${app.href}" data-color="${app.color}" ${cardLinkAttrs(app)}>
         <div class="icon">${app.icon}</div>
         <div class="title">${app.title}</div>
         <div class="desc">${app.desc}</div>

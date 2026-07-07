@@ -153,6 +153,18 @@
     font-weight: 600;
     color: var(--text-sub);
   }
+  .section-monogram {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    flex-shrink: 0;
+  }
   .see-more {
     font-size: 0.82rem;
     font-weight: 600;
@@ -320,7 +332,7 @@
   <footer>Made with pure HTML · CSS · JS</footer>
 </div>
 
-<script src="apps-data.js?v=2"></script>
+<script src="apps-data.js?v=3"></script>
 <script>
 function fmtDesc(text, limit) {
   return text.length > limit ? text.slice(0, limit - 1) + '…' : text;
@@ -329,7 +341,7 @@ function fmtDesc(text, limit) {
 function renderCard(app, badge) {
   const badgeHtml = badge ? `<span class="badge ${badge.cls}">${badge.label}</span>` : '';
   return `
-    <a class="mini-card" href="${app.href}" data-color="${app.color}">
+    <a class="mini-card" href="${app.href}" data-color="${app.color}" ${cardLinkAttrs(app)}>
       ${badgeHtml}
       <div class="icon">${app.icon}</div>
       <div class="title">${app.title}</div>
@@ -346,7 +358,7 @@ function renderSection({ key, title, apps, seeMoreHref, badgeFor }) {
   return `
     <section class="app-section" data-section="${key}">
       <div class="section-header">
-        <h2>${title} <span class="count">${apps.length}</span></h2>
+        <h2>${monogramHtml(key)} ${title} <span class="count">${apps.length}</span></h2>
         ${seeMore}
       </div>
       <div class="slider-wrap">
@@ -363,8 +375,8 @@ const updated = APPS.filter(a => a.updated)
   .slice(0, 4);
 
 const sections = [
-  { key: 'featured', title: '✨ Featured', apps: featured, seeMoreHref: null, badgeFor: () => ({ cls: 'new', label: 'NEW' }) },
-  { key: 'updated', title: '🔄 Updated', apps: updated, seeMoreHref: null, badgeFor: () => ({ cls: 'updated', label: 'UPDATED' }) },
+  { key: 'featured', title: 'Featured', apps: featured, seeMoreHref: null, badgeFor: () => ({ cls: 'new', label: 'NEW' }) },
+  { key: 'updated', title: 'Updated', apps: updated, seeMoreHref: null, badgeFor: () => ({ cls: 'updated', label: 'UPDATED' }) },
 ];
 
 CATEGORY_ORDER.forEach(cat => {
@@ -372,7 +384,7 @@ CATEGORY_ORDER.forEach(cat => {
   const catApps = APPS.filter(a => a.category === cat).sort((a, b) => new Date(a.released) - new Date(b.released));
   sections.push({
     key: cat,
-    title: `${meta.icon} ${meta.label}`,
+    title: meta.label,
     apps: catApps.slice(0, 4),
     seeMoreHref: catApps.length > 4 ? `category.html?cat=${cat}` : null,
     badgeFor: null,
