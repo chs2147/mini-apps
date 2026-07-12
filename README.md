@@ -31,6 +31,7 @@
 | 📄 [PDF 파일 분할기](https://pdf-file-splitter.vercel.app) | PDF 파일을 원하는 페이지 단위로 손쉽게 분할 |
 | 🖼️ [이미지 분할기](https://chs2147.github.io/image-splitter/) | 이미지를 여러 조각으로 분할 |
 | 📝 [마크다운 메이커](https://markdown-maker-production.up.railway.app) | PPTX/DOCX/XLSX/PDF/URL 콘텐츠를 마크다운으로 변환 |
+| 📈 [KOSPI 예측기](https://kospi-predictor.onrender.com) | KOSPI 지수를 예측해주는 서비스 (Made by TJ.Choi) |
 
 ---
 

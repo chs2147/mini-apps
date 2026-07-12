@@ -259,6 +259,17 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  .author-badge {
+    align-self: flex-start;
+    font-size: 0.66rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 8px;
+    background: rgba(255,204,0,0.14);
+    border: 1px solid rgba(255,204,0,0.35);
+    color: #ffd43b;
+    white-space: nowrap;
+  }
   .device-badges { display: flex; gap: 6px; flex-wrap: wrap; }
   .device-badge {
     font-size: 0.6rem;
@@ -332,7 +343,7 @@
   <footer>Made with pure HTML · CSS · JS</footer>
 </div>
 
-<script src="apps-data.js?v=4"></script>
+<script src="apps-data.js?v=5"></script>
 <script>
 function fmtDesc(text, limit) {
   return text.length > limit ? text.slice(0, limit - 1) + '…' : text;
@@ -346,6 +357,7 @@ function renderCard(app, badge) {
       <div class="icon">${app.icon}</div>
       <div class="title">${app.title}</div>
       <div class="desc">${fmtDesc(app.desc, 60)}</div>
+      ${authorBadgeHtml(app)}
       <div class="device-badges">${deviceBadgesHtml(app)}</div>
       <div class="arrow">→</div>
     </a>`;

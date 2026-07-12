@@ -13,4 +13,5 @@
   - Exclusive 앱도 신규 추가 항목이므로 `released` 타임스탬프를 정상적으로 채워 **Featured 노출 대상에 동일하게 포함**시킨다 (별도 예외 처리 없음 — Featured는 전체 앱을 `released` 기준으로만 정렬한다).
   - `external: true`인 카드는 클릭 시 **새 탭에서 열리도록** `target="_blank" rel="noopener noreferrer"`를 붙인다 (`cardLinkAttrs()` 헬퍼가 자동 처리).
   - Exclusive 앱의 `devices`는 **사용자가 명시적으로 알려준 것만** 기록한다. 직접 만든 앱이 아니라 우리가 반응형 여부를 실측할 수 없으므로, 명시가 없으면 `devices` 필드를 아예 비워 **뱃지를 하나도 표시하지 않는다** (임의로 추정해서 채우지 말 것).
+  - Exclusive 앱이 **본인이 아닌 제3자가 만든 앱**이면 `apps-data.js`에서 해당 항목에 `author: '<이름>'`을 지정한다. 카드에 `authorBadgeHtml()`이 자동으로 "👤 Made by &lt;이름&gt;" 뱃지를 눈에 띄게(강조 색상) 표시해, 직접 만든 앱과 혼동되지 않게 한다. 본인이 만든 앱에는 `author` 필드를 넣지 않는다.
 - **섹션 제목(Featured/Updated/Exclusive/카테고리) 앞의 아이콘은 이모지 대신 모노그램 스타일로 표시한다.** `apps-data.js`의 `SECTION_MONOGRAMS`에 키(섹션/카테고리 키)별 글자+그라디언트를 정의하고 `monogramHtml(key)`로 렌더링한다. 새 섹션/카테고리를 추가하면 여기에도 항목을 추가할 것.
