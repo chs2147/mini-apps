@@ -23,7 +23,7 @@ const APPS = [
   { id: 'pdf-file-splitter', title: 'PDF 파일 분할기', desc: 'PDF 파일을 원하는 페이지 단위로 손쉽게 분할할 수 있는 도구.', icon: '📄', color: 'cyan', href: 'https://pdf-file-splitter.vercel.app', category: 'exclusive', external: true, released: '2026-07-07T22:43:40', devices: ['desktop', 'mobile'] },
   { id: 'image-splitter', title: '이미지 분할기', desc: '이미지를 여러 조각으로 분할해주는 도구.', icon: '🖼️', color: 'rose', href: 'https://chs2147.github.io/image-splitter/', category: 'exclusive', external: true, released: '2026-07-07T22:43:41', devices: ['desktop'] },
   { id: 'markdown-maker', title: '마크다운 메이커', desc: 'PPTX, DOCX, XLSX, PDF, URL 콘텐츠를 마크다운으로 변환해주는 도구.', icon: '📝', color: 'mint', href: 'https://markdown-maker-production.up.railway.app', category: 'exclusive', external: true, released: '2026-07-08T10:00:00', devices: ['desktop', 'mobile'] },
-  { id: 'kospi-predictor', title: 'KOSPI 예측기', desc: 'KOSPI 지수를 예측해주는 서비스.', icon: '📈', color: 'blue', href: 'https://kospi-predictor.onrender.com', category: 'exclusive', external: true, author: 'TJ.Choi', released: '2026-07-08T11:00:00', devices: ['desktop', 'mobile'] },
+  { id: 'kospi-predictor', title: 'KOSPI 예측기', desc: 'KOSPI, KOSDAQ 현황을 시각화로 제공하는 서비스.', icon: '📈', color: 'blue', href: 'https://kospi-predictor.onrender.com', category: 'exclusive', external: true, author: 'TJ.Choi', released: '2026-07-08T11:00:00', devices: ['desktop', 'mobile'] },
 ];
 
 const CATEGORY_META = {
