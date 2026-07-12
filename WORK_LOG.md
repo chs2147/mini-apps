@@ -17,8 +17,9 @@
 | 2026-07-05 | 정각 맞추기(고정밀 타이밍 게임 + 방해 효과 시스템), 사다리 타기(아미다쿠지 알고리즘) 추가. 이후 랜딩 페이지를 카드 그리드 → **Featured/Updated/카테고리 섹션 슬라이더** 구조로 대규모 개편 |
 | 2026-07-07 | 슬라이더 화살표를 오버플로 기반으로 수정(기존엔 데스크탑 폭에서만 강제 표시), 기괴한 테트리스 타이틀 정렬 버그 수정. 앱 카드에 **데스크탑/모바일 지원 뱃지** 추가. 이어서 섹션 제목 아이콘을 이모지 → **모노그램**(글자+그라디언트)으로 교체, Updated와 게임 사이에 **Exclusive 카테고리**(외부 링크 앱 전용, 새 탭으로 열림) 신설하고 첫 외부 앱 2종(PDF 파일 분할기, 이미지 분할기) 추가 |
 | 2026-07-08 | Exclusive에 외부 앱 3번째 추가: 마크다운 메이커 (`markdown-maker-production.up.railway.app`), 데스크탑/모바일 모두 지원(사용자 명시). 이어서 4번째로 KOSPI 예측기(`kospi-predictor.onrender.com`) 추가 — 제작자가 본인이 아닌 지인(TJ.Choi)이라 카드에 "Made by TJ.Choi" 뱃지를 눈에 띄게 표시하는 `author`/`authorBadgeHtml()` 패턴 신설 |
+| 2026-07-12 | Exclusive에 외부 앱 5번째 추가: PDF 페이지 캡처기(`capture-docs-production.up.railway.app`) — PDF에서 원하는 페이지를 이미지로 캡처해 ZIP 다운로드, 데스크탑/모바일 모두 지원(사용자 명시) |
 
-## 현재 앱 목록 (15개, 자체 제작 11 + 외부 링크 4)
+## 현재 앱 목록 (16개, 자체 제작 11 + 외부 링크 5)
 
 `apps-data.js`가 단일 소스(source of truth). 카테고리·출시일·업데이트일·기기지원 여부를 여기서 관리한다.
 
@@ -39,8 +40,9 @@
 | image-splitter | 이미지 분할기 *(외부 링크)* | exclusive | desktop |
 | markdown-maker | 마크다운 메이커 *(외부 링크)* | exclusive | desktop, mobile |
 | kospi-predictor | KOSPI 예측기 *(외부 링크, Made by TJ.Choi)* | exclusive | desktop, mobile |
+| capture-docs | PDF 페이지 캡처기 *(외부 링크)* | exclusive | desktop, mobile |
 
-카테고리: ⭐ Exclusive(4, 외부 링크 전용) · 🎮 게임(6, 카드 4개 초과라 "더보기" 있음) · 🛠️ 도구 & 크리에이티브(3) · 🧘 라이프스타일(2).
+카테고리: ⭐ Exclusive(5, 외부 링크 전용) · 🎮 게임(6, 카드 4개 초과라 "더보기" 있음) · 🛠️ 도구 & 크리에이티브(3) · 🧘 라이프스타일(2).
 
 ## 랜딩 페이지 구조 (현재)
 
