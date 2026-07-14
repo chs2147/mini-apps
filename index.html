@@ -117,6 +117,22 @@
     letter-spacing: -0.01em;
   }
 
+  .visit-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    width: fit-content;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 4px 11px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    opacity: 0.8;
+    backdrop-filter: blur(16px);
+  }
+
   #sections-root {
     width: 100%;
     display: flex;
@@ -322,11 +338,18 @@
   .mini-card[data-color="teal"]   { --glow: rgba(20,184,166,0.3); }
 
   footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    margin-top: 8px;
+  }
+  footer p {
     font-size: 0.78rem;
     color: var(--text-sub);
     opacity: 0.5;
     letter-spacing: 0.04em;
-    margin-top: 8px;
   }
 </style>
 </head>
@@ -340,11 +363,28 @@
 
   <div id="sections-root"></div>
 
-  <footer>Made with pure HTML · CSS · JS</footer>
+  <footer>
+    <p>Copyright All rights reserved by SanbonJINI, 2026</p>
+    <div class="visit-counter" id="visit-counter">👁️ <span id="visit-count">…</span>명 방문</div>
+  </footer>
 </div>
 
 <script src="apps-data.js?v=6"></script>
 <script>
+(function () {
+  const NAMESPACE = 'mini-apps-chs2147';
+  const KEY = 'landing';
+  fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/${KEY}/up`)
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => {
+      document.getElementById('visit-count').textContent = data.count.toLocaleString('ko-KR');
+    })
+    .catch(() => {
+      const el = document.getElementById('visit-counter');
+      if (el) el.style.display = 'none';
+    });
+})();
+
 function fmtDesc(text, limit) {
   return text.length > limit ? text.slice(0, limit - 1) + '…' : text;
 }
