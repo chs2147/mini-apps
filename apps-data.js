@@ -25,6 +25,7 @@ const APPS = [
   { id: 'markdown-maker', title: '마크다운 메이커', desc: 'PPTX, DOCX, XLSX, PDF, URL 콘텐츠를 마크다운으로 변환해주는 도구.', icon: '📝', color: 'mint', href: 'https://markdown-maker-production.up.railway.app', category: 'exclusive', external: true, released: '2026-07-08T10:00:00', devices: ['desktop', 'mobile'] },
   { id: 'kospi-predictor', title: 'KOSPI 예측기', desc: 'KOSPI, KOSDAQ 현황을 시각화로 제공하는 서비스.', icon: '📈', color: 'blue', href: 'https://kospi-predictor.onrender.com', category: 'exclusive', external: true, author: 'TJ.Choi', released: '2026-07-08T11:00:00', devices: ['desktop', 'mobile'] },
   { id: 'capture-docs', title: 'PDF 페이지 캡처기', desc: 'PDF 파일에서 원하는 페이지를 이미지로 캡처해 ZIP으로 다운로드할 수 있는 도구.', icon: '📸', color: 'amber', href: 'https://capture-docs-production.up.railway.app/', category: 'exclusive', external: true, released: '2026-07-12T09:00:00', devices: ['desktop', 'mobile'] },
+  { id: '3d-chess', title: '3D 체스', desc: '입체적인 3D 보드에서 즐기는 체스 게임.', icon: '♟️', color: 'purple', href: 'https://threedchess-mpjo.onrender.com/', category: 'exclusive', external: true, author: 'TJ.Choi', released: '2026-07-18T09:00:00', devices: [] },
 ];
 
 const CATEGORY_META = {

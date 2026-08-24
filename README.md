@@ -33,6 +33,7 @@
 | 📝 [마크다운 메이커](https://markdown-maker-production.up.railway.app) | PPTX/DOCX/XLSX/PDF/URL 콘텐츠를 마크다운으로 변환 |
 | 📈 [KOSPI 예측기](https://kospi-predictor.onrender.com) | KOSPI, KOSDAQ 현황을 시각화로 제공하는 서비스 (Made by TJ.Choi) |
 | 📸 [PDF 페이지 캡처기](https://capture-docs-production.up.railway.app/) | PDF 파일에서 원하는 페이지를 이미지로 캡처해 ZIP으로 다운로드 |
+| ♟️ [3D 체스](https://threedchess-mpjo.onrender.com/) | 입체적인 3D 보드에서 즐기는 체스 게임 (Made by TJ.Choi) |
 
 ---
 
