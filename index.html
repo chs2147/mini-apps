@@ -297,6 +297,16 @@
     color: var(--text-sub);
     white-space: nowrap;
   }
+  .feature-badge {
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 8px;
+    background: rgba(45,226,255,0.1);
+    border: 1px solid rgba(45,226,255,0.3);
+    color: #7fe9ff;
+    white-space: nowrap;
+  }
 
   .mini-card .arrow {
     align-self: flex-end;
@@ -369,7 +379,7 @@
   </footer>
 </div>
 
-<script src="apps-data.js?v=7"></script>
+<script src="apps-data.js?v=8"></script>
 <script>
 (function () {
   const NAMESPACE = 'mini-apps-chs2147';
@@ -398,7 +408,7 @@ function renderCard(app, badge) {
       <div class="title">${app.title}</div>
       <div class="desc">${fmtDesc(app.desc, 60)}</div>
       ${authorBadgeHtml(app)}
-      <div class="device-badges">${deviceBadgesHtml(app)}</div>
+      <div class="device-badges">${deviceBadgesHtml(app)}${featureBadgesHtml(app)}</div>
       <div class="arrow">→</div>
     </a>`;
 }

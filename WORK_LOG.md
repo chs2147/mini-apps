@@ -19,7 +19,7 @@
 | 2026-07-08 | Exclusive에 외부 앱 3번째 추가: 마크다운 메이커 (`markdown-maker-production.up.railway.app`), 데스크탑/모바일 모두 지원(사용자 명시). 이어서 4번째로 KOSPI 예측기(`kospi-predictor.onrender.com`) 추가 — 제작자가 본인이 아닌 지인(TJ.Choi)이라 카드에 "Made by TJ.Choi" 뱃지를 눈에 띄게 표시하는 `author`/`authorBadgeHtml()` 패턴 신설 |
 | 2026-07-12 | Exclusive에 외부 앱 5번째 추가: PDF 페이지 캡처기(`capture-docs-production.up.railway.app`) — PDF에서 원하는 페이지를 이미지로 캡처해 ZIP 다운로드, 데스크탑/모바일 모두 지원(사용자 명시) |
 | 2026-07-14 | 랜딩 페이지 헤더에 외부 무료 카운터 서비스(`api.counterapi.dev`) 기반 누적 방문자 수 뱃지 추가. 백엔드가 없는 정적 사이트라 진짜 누적 카운트를 모든 방문자에게 동일하게 보여주려면 외부 서비스가 불가피함 — `api.countapi.xyz`는 서비스 중단 확인되어 제외, counterapi.dev로 대체. 실패 시 뱃지를 조용히 숨기는 fallback 처리. 이후 카운터가 헤더에서 너무 도드라진다는 피드백으로 풋터로 이동, 풋터 문구도 저작권 표기로 변경 |
-| 2026-07-18 | Exclusive에 외부 앱 6번째 추가: 3D 체스(`threedchess-mpjo.onrender.com`) — 제작자가 본인이 아닌 지인(TJ.Choi)이라 "Made by TJ.Choi" 뱃지 표시, devices 미지정으로 기기 뱃지 없음 |
+| 2026-07-18 | Exclusive에 외부 앱 6번째 추가: 3D 체스(`threedchess-mpjo.onrender.com`) — 제작자가 본인이 아닌 지인(TJ.Choi)이라 "Made by TJ.Choi" 뱃지 표시, devices 미지정으로 기기 뱃지 없음. 이후 사용자가 지원 스펙(데스크탑/모바일/온라인 대전)을 뒤늦게 알려줘 devices를 채우고, "온라인 대전"처럼 기기 지원과 성격이 다른 항목을 위해 `features`/`FEATURE_META`/`featureBadgesHtml()` — device-badge와 다른 시안색 "기능 배지" — 를 신설. 앞으로 신규 앱 추가 시 지원 스펙이 누락되면 추가 전에 먼저 질문하도록 규칙화 |
 
 ## 현재 앱 목록 (17개, 자체 제작 11 + 외부 링크 6)
 
@@ -43,7 +43,7 @@
 | markdown-maker | 마크다운 메이커 *(외부 링크)* | exclusive | desktop, mobile |
 | kospi-predictor | KOSPI 예측기 *(외부 링크, Made by TJ.Choi)* | exclusive | desktop, mobile |
 | capture-docs | PDF 페이지 캡처기 *(외부 링크)* | exclusive | desktop, mobile |
-| 3d-chess | 3D 체스 *(외부 링크, Made by TJ.Choi)* | exclusive | *(미지정)* |
+| 3d-chess | 3D 체스 *(외부 링크, Made by TJ.Choi)* | exclusive | desktop, mobile · 🌐 온라인 대전 |
 
 카테고리: ⭐ Exclusive(6, 외부 링크 전용) · 🎮 게임(6, 카드 4개 초과라 "더보기" 있음) · 🛠️ 도구 & 크리에이티브(3) · 🧘 라이프스타일(2).
 

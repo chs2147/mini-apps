@@ -25,7 +25,7 @@ const APPS = [
   { id: 'markdown-maker', title: '마크다운 메이커', desc: 'PPTX, DOCX, XLSX, PDF, URL 콘텐츠를 마크다운으로 변환해주는 도구.', icon: '📝', color: 'mint', href: 'https://markdown-maker-production.up.railway.app', category: 'exclusive', external: true, released: '2026-07-08T10:00:00', devices: ['desktop', 'mobile'] },
   { id: 'kospi-predictor', title: 'KOSPI 예측기', desc: 'KOSPI, KOSDAQ 현황을 시각화로 제공하는 서비스.', icon: '📈', color: 'blue', href: 'https://kospi-predictor.onrender.com', category: 'exclusive', external: true, author: 'TJ.Choi', released: '2026-07-08T11:00:00', devices: ['desktop', 'mobile'] },
   { id: 'capture-docs', title: 'PDF 페이지 캡처기', desc: 'PDF 파일에서 원하는 페이지를 이미지로 캡처해 ZIP으로 다운로드할 수 있는 도구.', icon: '📸', color: 'amber', href: 'https://capture-docs-production.up.railway.app/', category: 'exclusive', external: true, released: '2026-07-12T09:00:00', devices: ['desktop', 'mobile'] },
-  { id: '3d-chess', title: '3D 체스', desc: '입체적인 3D 보드에서 즐기는 체스 게임.', icon: '♟️', color: 'purple', href: 'https://threedchess-mpjo.onrender.com/', category: 'exclusive', external: true, author: 'TJ.Choi', released: '2026-07-18T09:00:00', devices: [] },
+  { id: '3d-chess', title: '3D 체스', desc: '입체적인 3D 보드에서 즐기는 체스 게임.', icon: '♟️', color: 'purple', href: 'https://threedchess-mpjo.onrender.com/', category: 'exclusive', external: true, author: 'TJ.Choi', released: '2026-07-18T09:00:00', devices: ['desktop', 'mobile'], features: ['online'] },
 ];
 
 const CATEGORY_META = {
@@ -40,6 +40,14 @@ const CATEGORY_ORDER = ['exclusive', 'games', 'tools', 'lifestyle'];
 const DEVICE_META = {
   desktop: { label: '데스크탑', icon: '🖥️' },
   mobile:  { label: '모바일', icon: '📱' },
+};
+
+/* Feature badges are distinct from device badges — they describe a
+   capability of the app itself (e.g. online multiplayer), not which
+   screen sizes it renders on. Rendered in a different accent color
+   so the two badge types are never confused at a glance. */
+const FEATURE_META = {
+  online: { label: '온라인 대전', icon: '🌐' },
 };
 
 /* Monogram badges replace emoji for section headers (Featured/Updated/
@@ -65,6 +73,15 @@ function deviceBadgesHtml(app) {
     const meta = DEVICE_META[d];
     if (!meta) return '';
     return `<span class="device-badge" title="${meta.label} 지원">${meta.icon} ${meta.label}</span>`;
+  }).join('');
+}
+
+function featureBadgesHtml(app) {
+  const features = app.features || [];
+  return features.map(f => {
+    const meta = FEATURE_META[f];
+    if (!meta) return '';
+    return `<span class="feature-badge" title="${meta.label}">${meta.icon} ${meta.label}</span>`;
   }).join('');
 }
 

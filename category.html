@@ -153,6 +153,16 @@
     color: var(--text-sub);
     white-space: nowrap;
   }
+  .feature-badge {
+    font-size: 0.64rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: rgba(45,226,255,0.1);
+    border: 1px solid rgba(45,226,255,0.3);
+    color: #7fe9ff;
+    white-space: nowrap;
+  }
   .card .arrow {
     align-self: flex-end;
     width: 32px; height: 32px;
@@ -192,7 +202,7 @@
   <section class="grid" id="grid-root"></section>
 </div>
 
-<script src="apps-data.js?v=7"></script>
+<script src="apps-data.js?v=8"></script>
 <script>
 const params = new URLSearchParams(location.search);
 const cat = params.get('cat');
@@ -219,7 +229,7 @@ if (!meta) {
         <div class="title">${app.title}</div>
         <div class="desc">${app.desc}</div>
         ${authorBadgeHtml(app)}
-        <div class="device-badges">${deviceBadgesHtml(app)}</div>
+        <div class="device-badges">${deviceBadgesHtml(app)}${featureBadgesHtml(app)}</div>
         <div class="arrow">→</div>
       </a>`).join('');
   }
